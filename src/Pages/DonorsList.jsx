@@ -9,7 +9,7 @@ const DonorsList = () => {
   useEffect(() => {
     const fetchDonors = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/auth/donors');
+        const response = await fetch('https://lifelink-api-tlx8.onrender.com/api/auth/donors');
         const data = await response.json();
         if (response.ok) {
           setDonors(data);

@@ -21,7 +21,7 @@ const PatientDashboard = () => {
   // FETCH PATIENT'S OWN REQUESTS
   const fetchMyRequests = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/api/requests/my-requests/${userName}`);
+      const response = await fetch(`https://lifelink-api-tlx8.onrender.com/api/requests/my-requests/${userName}`);
       const data = await response.json();
       if (response.ok) setMyRequests(data);
     } catch (error) {
@@ -46,7 +46,7 @@ const PatientDashboard = () => {
     try {
       const requestPayload = { ...formData, patientName: userName };
 
-      const response = await fetch('http://localhost:5000/api/requests/create', {
+      const response = await fetch('https://lifelink-api-tlx8.onrender.com/api/requests/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestPayload)

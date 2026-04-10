@@ -25,7 +25,7 @@ const HospitalDashboard = () => {
     const fetchInventory = async () => {
       try {
         const encodedName = encodeURIComponent(userName);
-        const response = await fetch(`http://localhost:5000/api/inventory/${encodedName}`);
+        const response = await fetch(`https://lifelink-api-tlx8.onrender.com/api/inventory/${encodedName}`);
         const data = await response.json();
         if (response.ok) setInventory(data);
       } catch (error) {}
@@ -37,7 +37,7 @@ const HospitalDashboard = () => {
   const fetchActiveMatches = async () => {
     try {
       const encodedName = encodeURIComponent(userName); 
-      const response = await fetch(`http://localhost:5000/api/requests/hospital-matches/${encodedName}`);
+      const response = await fetch(`https://lifelink-api-tlx8.onrender.com/api/requests/hospital-matches/${encodedName}`);
       const data = await response.json();
       if (response.ok) setActiveMatches(data);
     } catch (error) {}
@@ -51,7 +51,7 @@ const HospitalDashboard = () => {
   const fetchMyCamps = async () => {
     try {
       const encodedName = encodeURIComponent(userName);
-      const response = await fetch(`http://localhost:5000/api/camps/hospital/${encodedName}`);
+      const response = await fetch(`https://lifelink-api-tlx8.onrender.com/api/camps/hospital/${encodedName}`);
       const data = await response.json();
       if (response.ok) setMyCamps(data);
     } catch (error) {
@@ -66,7 +66,7 @@ const HospitalDashboard = () => {
 
   const updateStock = async (bloodGroup, change) => {
     try {
-      const response = await fetch('http://localhost:5000/api/inventory/update', {
+      const response = await fetch('https://lifelink-api-tlx8.onrender.com/api/inventory/update', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ hospitalName: userName, bloodGroup, change })
@@ -80,7 +80,7 @@ const HospitalDashboard = () => {
     const confirmDone = window.confirm(`Has the donor successfully donated? This will close the request and add 1 Unit of ${bloodGroup} to your inventory.`);
     if (!confirmDone) return;
     try {
-      const response = await fetch(`http://localhost:5000/api/requests/complete/${requestId}`, { method: 'PUT' });
+      const response = await fetch(`https://lifelink-api-tlx8.onrender.com/api/requests/complete/${requestId}`, { method: 'PUT' });
       if (response.ok) {
         alert(`✅ Donation successfully recorded! 1 Unit of ${bloodGroup} added to stock.`);
         setActiveMatches(activeMatches.filter(match => match._id !== requestId));
@@ -96,7 +96,7 @@ const HospitalDashboard = () => {
     e.preventDefault();
     try {
       const requestPayload = { ...formData, hospitalName: userName };
-      const response = await fetch('http://localhost:5000/api/requests/create', {
+      const response = await fetch('https://lifelink-api-tlx8.onrender.com/api/requests/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestPayload)
@@ -116,7 +116,7 @@ const HospitalDashboard = () => {
     e.preventDefault();
     try {
       const campPayload = { ...campData, hospitalName: userName, hospitalId: '60d5ecb8b392d700153ee000' }; 
-      const response = await fetch('http://localhost:5000/api/camps/create', {
+      const response = await fetch('https://lifelink-api-tlx8.onrender.com/api/camps/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(campPayload)
@@ -136,7 +136,7 @@ const HospitalDashboard = () => {
     if (!confirm) return;
 
     try {
-      const response = await fetch(`http://localhost:5000/api/camps/complete/${campId}`, {
+      const response = await fetch(`https://lifelink-api-tlx8.onrender.com/api/camps/complete/${campId}`, {
         method: 'PUT'
       });
       if (response.ok) {
@@ -152,7 +152,7 @@ const HospitalDashboard = () => {
     const confirmName = window.prompt(`DANGER ZONE: Type "${userName}" to unregister your hospital.`);
     if (confirmName === userName) {
       try {
-        const response = await fetch(`http://localhost:5000/api/auth/delete-account/${encodeURIComponent(userName)}`, { method: 'DELETE' });
+        const response = await fetch(`https://lifelink-api-tlx8.onrender.com/api/auth/delete-account/${encodeURIComponent(userName)}`, { method: 'DELETE' });
         if (response.ok) {
           localStorage.clear();
           window.location.href = '/'; 

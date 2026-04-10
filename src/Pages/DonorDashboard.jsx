@@ -28,7 +28,7 @@ const DonorDashboard = () => {
   useEffect(() => {
     const fetchRequests = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/requests/active');
+        const response = await fetch('https://lifelink-api-tlx8.onrender.com/api/requests/active');
         const data = await response.json();
         if (response.ok) setRequests(data);
       } catch (error) {} finally { setLoading(false); }
@@ -72,7 +72,7 @@ const DonorDashboard = () => {
     const donorContact = window.prompt("Please enter your mobile number:");
     if (!donorContact) return; 
     try {
-      const response = await fetch(`http://localhost:5000/api/requests/accept/${requestId}`, {
+      const response = await fetch(`https://lifelink-api-tlx8.onrender.com/api/requests/accept/${requestId}`, {
         method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ donorName: userName, donorContact: donorContact })
       });
       if (response.ok) {
@@ -122,7 +122,7 @@ const DonorDashboard = () => {
 
   const saveProfile = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/api/auth/update-profile/${userEmail}`, {
+      const response = await fetch(`https://lifelink-api-tlx8.onrender.com/api/auth/update-profile/${userEmail}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ profilePicture: profilePic })
