@@ -1,0 +1,17 @@
+/* CSS Reset - Ye har extra space aur margin ko hata dega */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  width: 100%;
+  overflow-x: hidden;
+  font-family: 'Arial', sans-serif;
+  background-color: #fcfcfc;
+}
+
+#root {
+  width: 100%;
+}
