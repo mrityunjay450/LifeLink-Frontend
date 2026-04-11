@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'; // 🚀 useEffect add kiya
+import React, { useState, useEffect } from 'react'; 
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 // 🚀 --- SOCKET & TOAST IMPORTS SHURU --- 🚀
@@ -36,18 +36,28 @@ function App() {
       console.log("🟢 Frontend Connected to Socket.io:", socket.id);
     });
 
-    // Jab Backend se 'newBloodRequest' ka signal aaye (Jo humne requestRoutes me banaya tha)
+    // Jab Backend se signal aaye
     socket.on("newBloodRequest", (data) => {
-      // Toastify se mast sa laal rang (error theme) ka Pop-up dikhana
-      toast.error(`🚨 URGENT: ${data.message}`, {
-        position: "top-right",
-        autoClose: 10000, // 10 second baad apne aap band hoga
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        theme: "colored",
-      });
+      
+      // 🚀 --- THE VIP FILTER (Sirf Donors ke liye) --- 🚀
+      // 1. Check karo ki kya LocalStorage mein user ka role 'donor' hai
+      const userRole = localStorage.getItem('role') ? localStorage.getItem('role').toLowerCase() : ""; 
+      
+      // 2. Ya fir check karo ki kya wo kisi aisi URL par hai jisme 'donor' aata ho (jaise /donor-dashboard)
+      const isDonorPage = window.location.pathname.includes('donor');
+
+      // Agar dono mein se koi bhi ek baat sach hai, tabhi Pop-up dikhao!
+      if (userRole === 'donor' || isDonorPage) {
+        toast.error(`🚨 URGENT: ${data.message}`, {
+          position: "top-right",
+          autoClose: 10000, // 10 second baad apne aap band hoga
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          theme: "colored",
+        });
+      }
     });
 
     // Cleanup function
