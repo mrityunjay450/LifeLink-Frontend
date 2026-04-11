@@ -128,7 +128,7 @@ const DonorDashboard = () => {
     } catch (error) { alert("Server error!"); }
   };
 
-  // PROFESSIONAL CERTIFICATE GENERATOR WITH TOTAL DONATIONS
+// 🚀 PROFESSIONAL CERTIFICATE GENERATOR WITH TOTAL DONATIONS
   const generateCertificate = (count) => {
     const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
     const centerX = 297 / 2; 
@@ -148,9 +148,9 @@ const DonorDashboard = () => {
     doc.text("In profound recognition of your selfless act of donating blood.", centerX, 135, null, null, "center");
     doc.text("Your noble contribution has given the gift of life to someone in urgent need.", centerX, 145, null, null, "center");
 
-    // GOLD MEDAL / TOTAL DONATIONS TEXT
+    // 🌟 FIXED: Removed Unicode '★' and used standard characters so jsPDF doesn't break
     doc.setFont("times", "bold"); doc.setFontSize(18); doc.setTextColor(218, 165, 32); 
-    doc.text(`★ Total Lifesaving Donations: ${count} ★`, centerX, 160, null, null, "center");
+    doc.text(`~ Total Lifesaving Donations: ${count} ~`, centerX, 160, null, null, "center");
     
     doc.setFontSize(14); doc.setFont("times", "normal"); doc.setTextColor(0, 0, 0);
     doc.text(`Date: ${new Date().toLocaleDateString()}`, 60, 180, null, null, "center"); doc.line(40, 182, 80, 182); 
