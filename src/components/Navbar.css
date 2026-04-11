@@ -5,7 +5,7 @@
   align-items: center;
   background-color: #d32f2f;
   padding: 12px 5%;
-  color: white;
+  color: #ffffff;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   position: sticky;
   top: 0;
@@ -215,7 +215,7 @@
     top: 80px; /* Navbar ki height ke hisaab se adjust karein */
     left: -100%; /* Screen se bahar */
     flex-direction: column;
-    background-color: #ffffff; /* Apne theme ka color dalein */
+    background-color: #d32f2fee; /* Apne theme ka color dalein */
     width: 100%;
     text-align: center;
     transition: 0.4s all ease-in-out;
