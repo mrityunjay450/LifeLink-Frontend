@@ -7,7 +7,6 @@ const DonorDashboard = () => {
   const navigate = useNavigate();
   const userName = localStorage.getItem('userName') || 'Hero';
   const userRole = localStorage.getItem('userRole');
-  // 🚀 NAYA: User ka email chahiye backend me profile update karne ke liye
   const userEmail = localStorage.getItem('userEmail') || 'donor@email.com'; 
 
   const [requests, setRequests] = useState([]);
@@ -17,9 +16,11 @@ const DonorDashboard = () => {
   const [isEligible, setIsEligible] = useState(true);
   const [activeTab, setActiveTab] = useState('dashboard');
 
-  // 🚀 NAYA: Profile Photo State
   const [profilePic, setProfilePic] = useState(localStorage.getItem('profilePic') || "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png");
   const [isEditing, setIsEditing] = useState(false);
+
+  // 🚀 NAYA: Password States
+  const [passwordData, setPasswordData] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
 
   useEffect(() => {
     if (userRole !== 'donor') navigate('/');
@@ -102,12 +103,11 @@ const DonorDashboard = () => {
     doc.save(`LifeLink_Donor_${userName}.pdf`);
   };
 
-  // 🚀 NAYA: Edit Photo Handlers
   const handlePhotoUpload = async (e) => {
     const file = e.target.files[0];
     if (file) {
       const base64 = await convertToBase64(file);
-      setProfilePic(base64); // UI update karega turant
+      setProfilePic(base64); 
     }
   };
 
@@ -129,7 +129,7 @@ const DonorDashboard = () => {
       });
       if (response.ok) {
         alert("✅ Profile picture updated successfully!");
-        localStorage.setItem('profilePic', profilePic); // Local me bhi save karo
+        localStorage.setItem('profilePic', profilePic); 
         setIsEditing(false);
       } else {
         alert("❌ Failed to update profile.");
@@ -137,6 +137,48 @@ const DonorDashboard = () => {
     } catch (error) {
       console.error(error);
       alert("Server Error");
+    }
+  };
+
+  // 🚀 NAYA: PASSWORD CHANGE HANDLER
+  const handlePasswordChange = async (e) => {
+    e.preventDefault();
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      return alert("❌ New passwords do not match!");
+    }
+    try {
+      const response = await fetch(`https://lifelink-api-tlx8.onrender.com/api/auth/change-password/${userEmail}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          currentPassword: passwordData.currentPassword, 
+          newPassword: passwordData.newPassword 
+        })
+      });
+      const data = await response.json();
+      if (response.ok) {
+        alert("✅ Password changed successfully!");
+        setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      } else {
+        alert(`❌ ${data.message || "Error changing password"}`);
+      }
+    } catch (error) {
+      alert("Server Error!");
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    const confirmName = window.prompt(`DANGER ZONE: Type "${userName}" to permanently delete your donor account.`);
+    if (confirmName === userName) {
+      try {
+        const response = await fetch(`https://lifelink-api-tlx8.onrender.com/api/auth/delete-account/${encodeURIComponent(userName)}`, { method: 'DELETE' });
+        if (response.ok) {
+          localStorage.clear();
+          window.location.href = '/'; 
+        }
+      } catch (error) { alert("Server Error!"); }
+    } else if (confirmName !== null) {
+      alert("❌ Name did not match.");
     }
   };
 
@@ -219,47 +261,58 @@ const DonorDashboard = () => {
           </div>
         )}
 
-        {/* 🚀 TAB 3: PROFILE SETTINGS (EDIT MODE ADDED) */}
+        {/* 🚀 TAB 3: PROFILE SETTINGS */}
         {activeTab === 'profile' && (
           <div className="requests-section">
             <h3>⚙️ Profile Settings</h3>
-            <div style={{ background: 'white', padding: '30px', borderRadius: '12px', boxShadow: '0 4px 10px rgba(0,0,0,0.05)', borderTop: '4px solid #333', display: 'flex', gap: '30px', alignItems: 'center' }}>
-              
-              {/* Profile Photo Area */}
+            
+            <div style={{ background: 'white', padding: '30px', borderRadius: '12px', boxShadow: '0 4px 10px rgba(0,0,0,0.05)', borderTop: '4px solid #333', display: 'flex', gap: '30px', alignItems: 'center', marginBottom: '30px' }}>
               <div style={{ textAlign: 'center' }}>
                 <div style={{ width: '120px', height: '120px', borderRadius: '50%', overflow: 'hidden', border: '3px solid #d32f2f', marginBottom: '15px' }}>
                   <img src={profilePic} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 </div>
-                
                 {isEditing ? (
                   <>
                     <input type="file" accept="image/*" onChange={handlePhotoUpload} style={{ fontSize: '0.8rem', width: '150px' }} />
-                    <button 
-                      onClick={saveProfile} 
-                      style={{ display: 'block', marginTop: '10px', width: '100%', padding: '8px', background: '#2e7d32', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }}
-                    >
-                      💾 Save Photo
-                    </button>
+                    <button onClick={saveProfile} style={{ display: 'block', marginTop: '10px', width: '100%', padding: '8px', background: '#2e7d32', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>💾 Save Photo</button>
                   </>
                 ) : (
-                  <button 
-                    onClick={() => setIsEditing(true)} 
-                    style={{ padding: '8px 15px', background: '#f1f1f1', color: '#333', border: '1px solid #ccc', borderRadius: '5px', cursor: 'pointer', fontSize: '0.9rem' }}
-                  >
-                    ✏️ Edit Photo
-                  </button>
+                  <button onClick={() => setIsEditing(true)} style={{ padding: '8px 15px', background: '#f1f1f1', color: '#333', border: '1px solid #ccc', borderRadius: '5px', cursor: 'pointer', fontSize: '0.9rem' }}>✏️ Edit Photo</button>
                 )}
               </div>
 
-              {/* Profile Details Area */}
               <div style={{ flex: 1 }}>
                 <p style={{ fontSize: '1.2rem', marginBottom: '10px' }}><strong>Name:</strong> {userName}</p>
                 <p style={{ fontSize: '1.1rem', marginBottom: '10px' }}><strong>Email:</strong> {userEmail}</p>
                 <p style={{ fontSize: '1.1rem', marginBottom: '10px' }}><strong>Role:</strong> Lifesaver (Verified Donor) 🌟</p>
-                <hr style={{ margin: '20px 0', border: 'none', borderTop: '1px solid #eee' }} />
-                <p style={{ color: '#666', fontStyle: 'italic' }}>* To update email or contact number, please contact support.</p>
               </div>
+            </div>
 
+            {/* 🚀 NAYA: CHANGE PASSWORD SECTION */}
+            <h3 style={{ borderLeft: '4px solid #1976D2', paddingLeft: '10px', color: '#1976D2' }}>🔐 Change Password</h3>
+            <div style={{ background: 'white', padding: '25px', borderRadius: '12px', boxShadow: '0 4px 10px rgba(0,0,0,0.05)', marginBottom: '30px' }}>
+              <form onSubmit={handlePasswordChange} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                <div style={{ gridColumn: 'span 2' }}>
+                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Current Password</label>
+                  <input type="password" required value={passwordData.currentPassword} onChange={(e) => setPasswordData({...passwordData, currentPassword: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid #ccc' }} />
+                </div>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>New Password</label>
+                  <input type="password" required value={passwordData.newPassword} onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid #ccc' }} />
+                </div>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Confirm New Password</label>
+                  <input type="password" required value={passwordData.confirmPassword} onChange={(e) => setPasswordData({...passwordData, confirmPassword: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid #ccc' }} />
+                </div>
+                <button type="submit" style={{ gridColumn: 'span 2', padding: '12px', background: '#1976D2', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}>Update Password</button>
+              </form>
+            </div>
+
+            <h3 style={{ borderLeft: '4px solid #d32f2f', paddingLeft: '10px', color: '#d32f2f' }}>⚠️ Account Deletion</h3>
+            <div style={{ background: '#fff5f5', padding: '25px', borderRadius: '12px', border: '1px solid #ffcdd2' }}>
+              <h4 style={{ color: '#d32f2f', margin: '0 0 10px 0', fontSize: '1.2rem' }}>Delete Donor Account</h4>
+              <p style={{ color: '#555', marginBottom: '20px' }}>Once you delete your account, all your donation history will be permanently removed.</p>
+              <button onClick={handleDeleteAccount} style={{ backgroundColor: 'transparent', color: '#d32f2f', border: '2px solid #d32f2f', padding: '10px 20px', borderRadius: '5px', fontWeight: 'bold', cursor: 'pointer' }}>🗑️ Permanently Delete Account</button>
             </div>
           </div>
         )}
