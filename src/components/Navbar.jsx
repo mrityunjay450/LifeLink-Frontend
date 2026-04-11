@@ -4,10 +4,16 @@ import './Navbar.css';
 
 const Navbar = ({ isLoggedIn, userName, setIsLoggedIn, setUserName }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  
+  // 🚀 NAYA: Mobile menu state
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  
   const navigate = useNavigate();
-
-  // 🚀 NAYA: Role get karna taaki sahi dashboard par bhej sake
   const userRole = localStorage.getItem('userRole');
+
+  // Mobile menu toggle functions
+  const toggleMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
+  const closeMenu = () => setIsMobileMenuOpen(false);
 
   // 🚀 MAGIC: Dynamic Dashboard Link Generator
   const getDashboardLink = () => {
@@ -24,14 +30,14 @@ const Navbar = ({ isLoggedIn, userName, setIsLoggedIn, setUserName }) => {
     localStorage.clear();
     
     setDropdownOpen(false); 
-    // 🚀 FIXED: Full refresh ke sath logout (taaki state proper clear ho)
+    closeMenu(); // 🚀 Mobile menu bhi band kar do
     window.location.href = '/login'; 
   };
 
   return (
     <nav className="navbar">
       <div className="logo">
-        <Link to="/" className="logo-link">
+        <Link to="/" className="logo-link" onClick={closeMenu}>
           <img src="/image/logo.png" alt="LifeLink Logo" className="logo-img" />
           <div className="logo-text">
             <h1>LifeLink</h1>
@@ -40,20 +46,25 @@ const Navbar = ({ isLoggedIn, userName, setIsLoggedIn, setUserName }) => {
         </Link>
       </div>
 
-      <ul className="nav-links">
-        <li><Link to="/">Home</Link></li>
-        
-        {/* 🚀 FIXED: Ab ye buttons alag-alag pages par point kar rahe hain */}
-        <li><Link to="/hospitals">Hospitals</Link></li>
-        <li><Link to="/destinations">Donation Camps</Link></li>
-        <li><Link to="/donors">Our Donors</Link></li>
-        <li><Link to="/contact">Contact Us</Link></li>
+      {/* 🚀 NAYA: Hamburger Icon for Mobile */}
+      <div className="menu-icon" onClick={toggleMenu}>
+        {isMobileMenuOpen ? '✖' : '☰'}
+      </div>
+
+      {/* 🚀 Class 'active' add hogi jab menu open hoga */}
+      <ul className={`nav-links ${isMobileMenuOpen ? 'active' : ''}`}>
+        <li><Link to="/" onClick={closeMenu}>Home</Link></li>
+        <li><Link to="/hospitals" onClick={closeMenu}>Hospitals</Link></li>
+        <li><Link to="/destinations" onClick={closeMenu}>Donation Camps</Link></li>
+        <li><Link to="/donors" onClick={closeMenu}>Our Donors</Link></li>
+        <li><Link to="/contact" onClick={closeMenu}>Contact Us</Link></li>
 
         {isLoggedIn ? (
           <li 
             className="user-dropdown-container"
             onMouseEnter={() => setDropdownOpen(true)}
             onMouseLeave={() => setDropdownOpen(false)}
+            onClick={() => setDropdownOpen(!dropdownOpen)} // Mobile par click se khulega
           >
             <div className="user-profile-btn">
               👤 Hi, {userName} <span className="arrow">▼</span>
@@ -61,15 +72,14 @@ const Navbar = ({ isLoggedIn, userName, setIsLoggedIn, setUserName }) => {
             
             {dropdownOpen && (
               <div className="dropdown-menu">
-                {/* 🚀 FIXED: Ab har user apne-apne dashboard par jayega */}
-                <Link to={getDashboardLink()} onClick={() => setDropdownOpen(false)}>📊 My Dashboard</Link>
-                <Link to="/profile" onClick={() => setDropdownOpen(false)}>⚙️ Profile Settings</Link>
+                <Link to={getDashboardLink()} onClick={closeMenu}>📊 My Dashboard</Link>
+                <Link to="/profile" onClick={closeMenu}>⚙️ Profile Settings</Link>
                 <button onClick={handleLogout} className="logout-btn">🚪 Logout</button>
               </div>
             )}
           </li>
         ) : (
-          <li><Link to="/login" className="login-btn">Login / Register</Link></li>
+          <li><Link to="/login" className="login-btn" onClick={closeMenu}>Login / Register</Link></li>
         )}
       </ul>
     </nav>

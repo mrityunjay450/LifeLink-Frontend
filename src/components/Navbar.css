@@ -186,3 +186,72 @@
 .logout-btn:hover {
   background-color: #fff5f5;
 }
+
+/* =========================================
+   📱 MOBILE RESPONSIVENESS (Navbar)
+   ========================================= */
+
+/* Desktop par icon hide rakho */
+.menu-icon {
+  display: none;
+  font-size: 28px;
+  cursor: pointer;
+  color: #333; /* Agar apka navbar dark hai toh ise 'white' kar dena */
+  user-select: none;
+}
+
+@media screen and (max-width: 768px) {
+  /* Hamburger icon show karo */
+  .menu-icon {
+    display: block;
+    position: absolute;
+    right: 20px;
+    top: 25px;
+  }
+
+  /* Links ko chupao aur vertical banao */
+  .nav-links {
+    position: absolute;
+    top: 80px; /* Navbar ki height ke hisaab se adjust karein */
+    left: -100%; /* Screen se bahar */
+    flex-direction: column;
+    background-color: #ffffff; /* Apne theme ka color dalein */
+    width: 100%;
+    text-align: center;
+    transition: 0.4s all ease-in-out;
+    box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+    padding: 20px 0;
+    z-index: 999;
+  }
+
+  /* Hamburger click hone par screen ke andar lao */
+  .nav-links.active {
+    left: 0;
+  }
+
+  .nav-links li {
+    margin: 15px 0;
+    width: 100%;
+  }
+
+  /* User Dropdown ko mobile par theek karna */
+  .user-dropdown-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .dropdown-menu {
+    position: relative; /* Mobile par absolute nahi, relative chaiye */
+    box-shadow: none;
+    background-color: #f9f9f9;
+    width: 90%;
+    margin-top: 10px;
+    border-radius: 8px;
+  }
+
+  .dropdown-menu a, .dropdown-menu button {
+    text-align: center;
+    padding: 12px;
+  }
+}
