@@ -47,8 +47,8 @@ const Footer = () => {
           <h3>Get in Touch</h3>
           {/* 🚀 FIXED: Phone aur Email ko clickable bana diya */}
           <p><a href="tel:+918271599028" style={{color: 'inherit', textDecoration: 'none'}}>📞 +91 8271599028</a></p>
-          <p><a href="mailto:support@lifelink.com" style={{color: 'inherit', textDecoration: 'none'}}>✉️ support@lifelink.com</a></p>
-          <p>📍 Main Medical Hub, Bihar, India</p>
+          <p><a href="mailto:support@lifelink.com" style={{color: 'inherit', textDecoration: 'none'}}>✉️ livelinksaver@gmail.com</a></p>
+          <p>📍 LifeLink Tech Park, Sector 62<br/>Noida, UP 201301, India</p>
         </div>
       </div>
 

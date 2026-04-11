@@ -41,12 +41,12 @@ const ContactUs = () => {
           <div className="info-card">
             <span className="info-icon">📞</span>
             <h3>24/7 Helpline</h3>
-            <p>Emergency: 1800-123-4567<br/>Support: +91 98765 43210</p>
+            <p>Emergency: +91 82715-99028<br/>Support: +91 90272-06045</p>
           </div>
           <div className="info-card">
             <span className="info-icon">✉️</span>
             <h3>Email Support</h3>
-            <p>help@lifelink.org<br/>partnerships@lifelink.org</p>
+            <p>livelinksaver@gmail.com<br/>livelinksaver@gmail.com</p>
           </div>
         </div>
 

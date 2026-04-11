@@ -1,21 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react'; // 🚀 FIXED: useRef import kiya
 import { Link, useNavigate } from 'react-router-dom';
 import './Navbar.css';
 
 const Navbar = ({ isLoggedIn, userName, setIsLoggedIn, setUserName }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  
-  // 🚀 NAYA: Mobile menu state
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   const navigate = useNavigate();
   const userRole = localStorage.getItem('userRole');
 
+  // 🚀 MAGIC: Hover Delay ke liye Reference
+  const timeoutRef = useRef(null);
+
   // Mobile menu toggle functions
   const toggleMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
   const closeMenu = () => setIsMobileMenuOpen(false);
 
-  // 🚀 MAGIC: Dynamic Dashboard Link Generator
+  // Dynamic Dashboard Link Generator
   const getDashboardLink = () => {
     if (userRole === 'donor') return '/donor-dashboard';
     if (userRole === 'hospital') return '/hospital-dashboard';
@@ -30,8 +31,21 @@ const Navbar = ({ isLoggedIn, userName, setIsLoggedIn, setUserName }) => {
     localStorage.clear();
     
     setDropdownOpen(false); 
-    closeMenu(); // 🚀 Mobile menu bhi band kar do
+    closeMenu(); 
     window.location.href = '/login'; 
+  };
+
+  // 🚀 FIXED: Smooth Hover Functions
+  const handleMouseEnter = () => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current); // Agar koi timer chal raha hai toh usko roko
+    setDropdownOpen(true); // Menu khol do
+  };
+
+  const handleMouseLeave = () => {
+    // Menu band karne se pehle 300 millisecond (0.3s) ka wait karo
+    timeoutRef.current = setTimeout(() => {
+      setDropdownOpen(false);
+    }, 300); 
   };
 
   return (
@@ -46,12 +60,10 @@ const Navbar = ({ isLoggedIn, userName, setIsLoggedIn, setUserName }) => {
         </Link>
       </div>
 
-      {/* 🚀 NAYA: Hamburger Icon for Mobile */}
       <div className="menu-icon" onClick={toggleMenu}>
         {isMobileMenuOpen ? '✖' : '☰'}
       </div>
 
-      {/* 🚀 Class 'active' add hogi jab menu open hoga */}
       <ul className={`nav-links ${isMobileMenuOpen ? 'active' : ''}`}>
         <li><Link to="/" onClick={closeMenu}>Home</Link></li>
         <li><Link to="/hospitals" onClick={closeMenu}>Hospitals</Link></li>
@@ -62,19 +74,29 @@ const Navbar = ({ isLoggedIn, userName, setIsLoggedIn, setUserName }) => {
         {isLoggedIn ? (
           <li 
             className="user-dropdown-container"
-            onMouseEnter={() => setDropdownOpen(true)}
-            onMouseLeave={() => setDropdownOpen(false)}
-            onClick={() => setDropdownOpen(!dropdownOpen)} // Mobile par click se khulega
+            onMouseEnter={handleMouseEnter} // 🚀 Updated Here
+            onMouseLeave={handleMouseLeave} // 🚀 Updated Here
+            onClick={() => setDropdownOpen(!dropdownOpen)} 
           >
             <div className="user-profile-btn">
               👤 Hi, {userName} <span className="arrow">▼</span>
             </div>
             
             {dropdownOpen && (
-              <div className="dropdown-menu">
-                <Link to={getDashboardLink()} onClick={closeMenu}>📊 My Dashboard</Link>
-                <Link to="/profile" onClick={closeMenu}>⚙️ Profile Settings</Link>
-                <button onClick={handleLogout} className="logout-btn">🚪 Logout</button>
+              <div className="dropdown-menu" style={{ overflow: 'hidden' }}>
+                <div style={{ padding: '12px 15px', backgroundColor: '#f9f9f9', borderBottom: '1px solid #eee' }}>
+                  <p style={{ margin: 0, fontWeight: 'bold', color: '#333', fontSize: '1.05rem' }}>{userName}</p>
+                  <p style={{ margin: 0, fontSize: '0.85rem', color: '#d32f2f', fontWeight: 'bold', marginTop: '3px' }}>
+                    {userRole === 'donor' ? 'Lifesaver 🌟' : userRole === 'hospital' ? 'Hospital Admin 🏥' : 'Patient 👤'}
+                  </p>
+                </div>
+
+                <Link to={getDashboardLink()} state={{ tab: 'dashboard' }} onClick={closeMenu}>📊 My Dashboard</Link>
+                <Link to={getDashboardLink()} state={{ tab: 'profile' }} onClick={closeMenu}>⚙️ Profile Settings</Link>
+                
+                <div style={{ borderTop: '1px solid #eee' }}>
+                  <button onClick={handleLogout} className="logout-btn" style={{ width: '100%', textAlign: 'center', fontWeight: 'bold' }}>🚪 Logout</button>
+                </div>
               </div>
             )}
           </li>

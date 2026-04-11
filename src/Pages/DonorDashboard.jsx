@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom'; // 🚀 FIXED: useLocation add kiya
 import { jsPDF } from 'jspdf'; 
 import './DonorDashboard.css';
 
 const DonorDashboard = () => {
   const navigate = useNavigate();
+  const location = useLocation(); // 🚀 NAYA: Navbar se aane wale clicks track karne ke liye
+
   const userName = localStorage.getItem('userName') || 'Hero';
   const userRole = localStorage.getItem('userRole');
   const userEmail = localStorage.getItem('userEmail') || 'donor@email.com'; 
@@ -12,20 +14,31 @@ const DonorDashboard = () => {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   
+  const [donationHistory, setDonationHistory] = useState([]);
+  const [totalDonations, setTotalDonations] = useState(0);
+
   const [timeLeft, setTimeLeft] = useState("Calculating...");
   const [isEligible, setIsEligible] = useState(true);
   const [activeTab, setActiveTab] = useState('dashboard');
 
   const [profilePic, setProfilePic] = useState(localStorage.getItem('profilePic') || "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png");
   const [isEditing, setIsEditing] = useState(false);
-
-  // 🚀 NAYA: Password States
   const [passwordData, setPasswordData] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
+
+  // 🚀 NAYA: Navbar se aane wale "Profile" ya "Dashboard" click ko handle karna
+  useEffect(() => {
+    if (location.state && location.state.tab) {
+      setActiveTab(location.state.tab);
+      // Ek baar tab change hone ke baad history state clear kar do taaki refresh par issue na aaye
+      window.history.replaceState({}, document.title);
+    }
+  }, [location]);
 
   useEffect(() => {
     if (userRole !== 'donor') navigate('/');
   }, [navigate, userRole]);
 
+  // FETCH ACTIVE EMERGENCY REQUESTS
   useEffect(() => {
     const fetchRequests = async () => {
       try {
@@ -37,19 +50,48 @@ const DonorDashboard = () => {
     fetchRequests();
   }, []);
 
+  // FETCH REAL DONATION HISTORY FROM BACKEND
+  useEffect(() => {
+    const fetchHistory = async () => {
+      try {
+        const response = await fetch(`https://lifelink-api-tlx8.onrender.com/api/requests/donor-history/${encodeURIComponent(userName)}`);
+        const data = await response.json();
+        if (response.ok) {
+          setDonationHistory(data);
+          setTotalDonations(data.length); 
+        }
+      } catch (error) {
+        console.error("Error fetching history", error);
+      }
+    };
+    fetchHistory();
+  }, [userName]);
+
+  // ROCK-SOLID ELIGIBILITY TIMER LOGIC
   useEffect(() => {
     const checkEligibility = () => {
       const lastDonation = localStorage.getItem('lastDonationDate');
-      if (!lastDonation) {
+      
+      if (!lastDonation || lastDonation === 'null' || lastDonation === 'undefined') {
         setIsEligible(true);
         setTimeLeft("Ready to Donate");
         return;
       }
+
       const lastDate = new Date(lastDonation);
+
+      if (isNaN(lastDate.getTime())) {
+        setIsEligible(true);
+        setTimeLeft("Ready to Donate");
+        return;
+      }
+
       const eligibleDate = new Date(lastDate.getTime() + 90 * 24 * 60 * 60 * 1000);
+      
       const timer = setInterval(() => {
         const now = new Date();
         const difference = eligibleDate - now;
+        
         if (difference <= 0) {
           setIsEligible(true);
           setTimeLeft("Ready to Donate");
@@ -63,8 +105,10 @@ const DonorDashboard = () => {
           setTimeLeft(`${days}d ${hours}h ${minutes}m ${seconds}s`);
         }
       }, 1000);
+      
       return () => clearInterval(timer);
     };
+    
     checkEligibility();
   }, []);
 
@@ -77,30 +121,42 @@ const DonorDashboard = () => {
         method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ donorName: userName, donorContact: donorContact })
       });
       if (response.ok) {
-        alert("🎉 Request Accepted!");
+        alert("🎉 Request Accepted! Please reach the hospital ASAP.");
         localStorage.setItem('lastDonationDate', new Date().toISOString());
         window.location.reload(); 
       }
     } catch (error) { alert("Server error!"); }
   };
 
-  const generateCertificate = () => {
+  // PROFESSIONAL CERTIFICATE GENERATOR WITH TOTAL DONATIONS
+  const generateCertificate = (count) => {
     const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
     const centerX = 297 / 2; 
+    
     doc.setDrawColor(178, 34, 34); doc.setLineWidth(3); doc.rect(10, 10, 277, 190);
     doc.setDrawColor(218, 165, 32); doc.setLineWidth(1); doc.rect(15, 15, 267, 180);
+    
     doc.setFont("times", "bold"); doc.setFontSize(36); doc.setTextColor(178, 34, 34); doc.text("LIFELINK", centerX, 45, null, null, "center");
     doc.setFont("helvetica", "bold"); doc.setFontSize(22); doc.setTextColor(50, 50, 50); doc.text("CERTIFICATE OF APPRECIATION", centerX, 65, null, null, "center");
+    
     doc.setFont("times", "italic"); doc.setFontSize(16); doc.setTextColor(80, 80, 80); doc.text("This certificate is proudly presented to", centerX, 90, null, null, "center");
+    
     doc.setFont("times", "bolditalic"); doc.setFontSize(36); doc.setTextColor(0, 0, 0); doc.text(userName, centerX, 115, null, null, "center");
+    
     doc.setDrawColor(200, 200, 200); doc.setLineWidth(0.5); doc.line(80, 120, 217, 120);
     doc.setFont("helvetica", "normal"); doc.setFontSize(14); doc.setTextColor(60, 60, 60);
     doc.text("In profound recognition of your selfless act of donating blood.", centerX, 135, null, null, "center");
     doc.text("Your noble contribution has given the gift of life to someone in urgent need.", centerX, 145, null, null, "center");
+
+    // GOLD MEDAL / TOTAL DONATIONS TEXT
+    doc.setFont("times", "bold"); doc.setFontSize(18); doc.setTextColor(218, 165, 32); 
+    doc.text(`★ Total Lifesaving Donations: ${count} ★`, centerX, 160, null, null, "center");
+    
     doc.setFontSize(14); doc.setFont("times", "normal"); doc.setTextColor(0, 0, 0);
     doc.text(`Date: ${new Date().toLocaleDateString()}`, 60, 180, null, null, "center"); doc.line(40, 182, 80, 182); 
     doc.text("Authorized Signature", 237, 180, null, null, "center"); doc.line(207, 175, 267, 175); 
-    doc.save(`LifeLink_Donor_${userName}.pdf`);
+    
+    doc.save(`LifeLink_Hero_${userName}.pdf`);
   };
 
   const handlePhotoUpload = async (e) => {
@@ -123,62 +179,38 @@ const DonorDashboard = () => {
   const saveProfile = async () => {
     try {
       const response = await fetch(`https://lifelink-api-tlx8.onrender.com/api/auth/update-profile/${userEmail}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ profilePicture: profilePic })
+        method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ profilePicture: profilePic })
       });
       if (response.ok) {
         alert("✅ Profile picture updated successfully!");
         localStorage.setItem('profilePic', profilePic); 
         setIsEditing(false);
-      } else {
-        alert("❌ Failed to update profile.");
       }
-    } catch (error) {
-      console.error(error);
-      alert("Server Error");
-    }
+    } catch (error) { alert("Server Error"); }
   };
 
-  // 🚀 NAYA: PASSWORD CHANGE HANDLER
   const handlePasswordChange = async (e) => {
     e.preventDefault();
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      return alert("❌ New passwords do not match!");
-    }
+    if (passwordData.newPassword !== passwordData.confirmPassword) return alert("❌ New passwords do not match!");
     try {
       const response = await fetch(`https://lifelink-api-tlx8.onrender.com/api/auth/change-password/${userEmail}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          currentPassword: passwordData.currentPassword, 
-          newPassword: passwordData.newPassword 
-        })
+        method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ currentPassword: passwordData.currentPassword, newPassword: passwordData.newPassword })
       });
       const data = await response.json();
       if (response.ok) {
-        alert("✅ Password changed successfully!");
+        alert("✅ Password changed!");
         setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
-      } else {
-        alert(`❌ ${data.message || "Error changing password"}`);
-      }
-    } catch (error) {
-      alert("Server Error!");
-    }
+      } else alert(`❌ ${data.message}`);
+    } catch (error) { alert("Server Error!"); }
   };
 
   const handleDeleteAccount = async () => {
-    const confirmName = window.prompt(`DANGER ZONE: Type "${userName}" to permanently delete your donor account.`);
+    const confirmName = window.prompt(`DANGER ZONE: Type "${userName}" to delete account.`);
     if (confirmName === userName) {
       try {
         const response = await fetch(`https://lifelink-api-tlx8.onrender.com/api/auth/delete-account/${encodeURIComponent(userName)}`, { method: 'DELETE' });
-        if (response.ok) {
-          localStorage.clear();
-          window.location.href = '/'; 
-        }
+        if (response.ok) { localStorage.clear(); window.location.href = '/'; }
       } catch (error) { alert("Server Error!"); }
-    } else if (confirmName !== null) {
-      alert("❌ Name did not match.");
     }
   };
 
@@ -188,7 +220,7 @@ const DonorDashboard = () => {
         <ul className="sidebar-menu">
           <li className={activeTab === 'dashboard' ? 'active' : ''} onClick={() => setActiveTab('dashboard')}>📊 Dashboard</li>
           <li className={activeTab === 'donations' ? 'active' : ''} onClick={() => setActiveTab('donations')}>🩸 My Donations</li>
-          <li className={activeTab === 'profile' ? 'active' : ''} onClick={() => setActiveTab('profile')}>⚙️ Profile Settings</li>
+          <li className={activeTab === 'profile' ? 'active' : ''} onClick={() => setActiveTab('profile')}>⚙️ Profile</li>
           <li onClick={() => { localStorage.clear(); window.location.href = '/login'; }}>🚪 Logout</li>
         </ul>
       </aside>
@@ -200,7 +232,7 @@ const DonorDashboard = () => {
             <p>Your dashboard to track donations and save lives.</p>
           </div>
           <div className="status-toggle">
-            {isEligible ? '🟢 Available for Emergency' : '🔴 Resting Period (Not Available)'}
+            {isEligible ? '🟢 Available for Emergency' : '🔴 Resting Period'}
           </div>
         </div>
 
@@ -211,13 +243,18 @@ const DonorDashboard = () => {
               <div className="stat-card" style={{ flexDirection: 'column', alignItems: 'flex-start' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
                   <div className="stat-icon">❤️</div>
-                  <div className="stat-info"><h3>Total Donations</h3><p>01</p></div>
+                  <div className="stat-info">
+                    <h3>Total Donations</h3>
+                    <p style={{ fontWeight: 'bold', fontSize: '1.5rem', color: '#d32f2f' }}>
+                      {totalDonations < 10 && totalDonations > 0 ? `0${totalDonations}` : totalDonations}
+                    </p>
+                  </div>
                 </div>
-                <button onClick={generateCertificate} style={{ marginTop: '15px', padding: '8px 12px', backgroundColor: '#fff', color: '#d32f2f', border: '1px solid #d32f2f', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold', width: '100%' }}>
-                  📥 Download Certificate
+                <button onClick={() => generateCertificate(totalDonations)} style={{ marginTop: '15px', padding: '8px 12px', backgroundColor: '#fff', color: '#d32f2f', border: '1px solid #d32f2f', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold', width: '100%' }} disabled={totalDonations === 0}>
+                  {totalDonations > 0 ? '📥 Download Certificate' : '⏳ Donate to Unlock'}
                 </button>
               </div>
-              <div className="stat-card"><div className="stat-icon">🩸</div><div className="stat-info"><h3>Your Blood Group</h3><p>Ready</p></div></div>
+              <div className="stat-card"><div className="stat-icon">🩸</div><div className="stat-info"><h3>Your Status</h3><p>{isEligible ? "Ready" : "Recovering"}</p></div></div>
               <div className="stat-card" style={{ borderBottomColor: isEligible ? '#2e7d32' : '#f57c00' }}>
                 <div className="stat-icon">⏳</div>
                 <div className="stat-info"><h3>Next Eligibility</h3><p style={{ fontSize: '1.2rem', color: isEligible ? '#2e7d32' : '#f57c00', fontWeight: 'bold' }}>{timeLeft}</p></div>
@@ -232,7 +269,7 @@ const DonorDashboard = () => {
                     <div className="request-card" key={req._id}>
                       <div className="req-details">
                         <h4>Need {req.bloodGroup} Blood <span className={`tag ${req.urgency}`}>{req.urgency === 'critical' ? '🔴 Critical' : '🟡 High Priority'}</span></h4>
-                        <p>👤 Patient: {req.patientName}</p><p>🏥 Location: {req.hospitalName} ({req.location})</p><p>📞 Contact: {req.contactNumber}</p>
+                        <p>👤 Patient: {req.patientName}</p><p>🏥 Location: {req.hospitalName} ({req.location})</p>
                       </div>
                       <div className="req-actions">
                         <button className="btn-map" onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(req.hospitalName + ' ' + req.location)}`, '_blank')}>📍 View Map</button>
@@ -246,26 +283,36 @@ const DonorDashboard = () => {
           </>
         )}
 
-        {/* TAB 2: MY DONATIONS HISTORY */}
+        {/* TAB 2: REAL DONATION HISTORY */}
         {activeTab === 'donations' && (
           <div className="requests-section">
-            <h3>🩸 My Donation History</h3>
-            <div className="request-card" style={{ borderLeft: '5px solid #2e7d32', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div className="req-details">
-                <h4 style={{ color: '#2e7d32', margin: '0 0 5px 0' }}>Successful Donation</h4>
-                <p style={{ margin: '3px 0' }}>📍 Donated via LifeLink Network</p>
-                <p style={{ margin: '3px 0' }}>📅 Date: {localStorage.getItem('lastDonationDate') ? new Date(localStorage.getItem('lastDonationDate')).toLocaleDateString() : 'No recent donations recorded'}</p>
-              </div>
-              <button className="btn-accept" onClick={generateCertificate} style={{ backgroundColor: '#2e7d32' }}>📥 Get Certificate</button>
+            <h3>🩸 My Verified Donation History</h3>
+            <div className="request-feed">
+              {donationHistory.length === 0 ? (
+                <div style={{ padding: '20px', background: '#f9f9f9', borderRadius: '10px', textAlign: 'center', color: '#666' }}>
+                  <p>You haven't completed any donations through LifeLink yet.</p>
+                  <p>Accept a request from the dashboard to start saving lives!</p>
+                </div>
+              ) : (
+                donationHistory.map((historyItem, index) => (
+                  <div className="request-card" key={historyItem._id} style={{ borderLeft: '5px solid #2e7d32', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div className="req-details">
+                      <h4 style={{ color: '#2e7d32', margin: '0 0 5px 0' }}>✅ Lifesaver #{totalDonations - index}</h4>
+                      <p style={{ margin: '3px 0' }}>📍 Donated at: <strong>{historyItem.hospitalName}</strong></p>
+                      <p style={{ margin: '3px 0' }}>👤 Patient: {historyItem.patientName} ({historyItem.bloodGroup})</p>
+                      <p style={{ margin: '3px 0' }}>📅 Date: {new Date(historyItem.updatedAt).toLocaleDateString()}</p>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         )}
 
-        {/* 🚀 TAB 3: PROFILE SETTINGS */}
+        {/* TAB 3: PROFILE SETTINGS */}
         {activeTab === 'profile' && (
           <div className="requests-section">
             <h3>⚙️ Profile Settings</h3>
-            
             <div style={{ background: 'white', padding: '30px', borderRadius: '12px', boxShadow: '0 4px 10px rgba(0,0,0,0.05)', borderTop: '4px solid #333', display: 'flex', gap: '30px', alignItems: 'center', marginBottom: '30px' }}>
               <div style={{ textAlign: 'center' }}>
                 <div style={{ width: '120px', height: '120px', borderRadius: '50%', overflow: 'hidden', border: '3px solid #d32f2f', marginBottom: '15px' }}>
@@ -280,43 +327,32 @@ const DonorDashboard = () => {
                   <button onClick={() => setIsEditing(true)} style={{ padding: '8px 15px', background: '#f1f1f1', color: '#333', border: '1px solid #ccc', borderRadius: '5px', cursor: 'pointer', fontSize: '0.9rem' }}>✏️ Edit Photo</button>
                 )}
               </div>
-
               <div style={{ flex: 1 }}>
                 <p style={{ fontSize: '1.2rem', marginBottom: '10px' }}><strong>Name:</strong> {userName}</p>
                 <p style={{ fontSize: '1.1rem', marginBottom: '10px' }}><strong>Email:</strong> {userEmail}</p>
-                <p style={{ fontSize: '1.1rem', marginBottom: '10px' }}><strong>Role:</strong> Lifesaver (Verified Donor) 🌟</p>
+                <p style={{ fontSize: '1.1rem', marginBottom: '10px' }}><strong>Role:</strong> Lifesaver 🌟</p>
               </div>
             </div>
 
-            {/* 🚀 NAYA: CHANGE PASSWORD SECTION */}
             <h3 style={{ borderLeft: '4px solid #1976D2', paddingLeft: '10px', color: '#1976D2' }}>🔐 Change Password</h3>
             <div style={{ background: 'white', padding: '25px', borderRadius: '12px', boxShadow: '0 4px 10px rgba(0,0,0,0.05)', marginBottom: '30px' }}>
               <form onSubmit={handlePasswordChange} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
                 <div style={{ gridColumn: 'span 2' }}>
-                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Current Password</label>
-                  <input type="password" required value={passwordData.currentPassword} onChange={(e) => setPasswordData({...passwordData, currentPassword: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid #ccc' }} />
+                  <label>Current Password</label><input type="password" required value={passwordData.currentPassword} onChange={(e) => setPasswordData({...passwordData, currentPassword: e.target.value})} style={{ width: '100%', padding: '10px' }} />
                 </div>
-                <div>
-                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>New Password</label>
-                  <input type="password" required value={passwordData.newPassword} onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid #ccc' }} />
-                </div>
-                <div>
-                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Confirm New Password</label>
-                  <input type="password" required value={passwordData.confirmPassword} onChange={(e) => setPasswordData({...passwordData, confirmPassword: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid #ccc' }} />
-                </div>
-                <button type="submit" style={{ gridColumn: 'span 2', padding: '12px', background: '#1976D2', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}>Update Password</button>
+                <div><label>New Password</label><input type="password" required value={passwordData.newPassword} onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})} style={{ width: '100%', padding: '10px' }} /></div>
+                <div><label>Confirm Password</label><input type="password" required value={passwordData.confirmPassword} onChange={(e) => setPasswordData({...passwordData, confirmPassword: e.target.value})} style={{ width: '100%', padding: '10px' }} /></div>
+                <button type="submit" style={{ gridColumn: 'span 2', padding: '12px', background: '#1976D2', color: 'white', border: 'none', borderRadius: '5px' }}>Update Password</button>
               </form>
             </div>
 
             <h3 style={{ borderLeft: '4px solid #d32f2f', paddingLeft: '10px', color: '#d32f2f' }}>⚠️ Account Deletion</h3>
             <div style={{ background: '#fff5f5', padding: '25px', borderRadius: '12px', border: '1px solid #ffcdd2' }}>
-              <h4 style={{ color: '#d32f2f', margin: '0 0 10px 0', fontSize: '1.2rem' }}>Delete Donor Account</h4>
-              <p style={{ color: '#555', marginBottom: '20px' }}>Once you delete your account, all your donation history will be permanently removed.</p>
-              <button onClick={handleDeleteAccount} style={{ backgroundColor: 'transparent', color: '#d32f2f', border: '2px solid #d32f2f', padding: '10px 20px', borderRadius: '5px', fontWeight: 'bold', cursor: 'pointer' }}>🗑️ Permanently Delete Account</button>
+              <h4 style={{ color: '#d32f2f' }}>Delete Donor Account</h4>
+              <button onClick={handleDeleteAccount} style={{ backgroundColor: 'transparent', color: '#d32f2f', border: '2px solid #d32f2f', padding: '10px 20px', borderRadius: '5px', cursor: 'pointer' }}>🗑️ Permanently Delete</button>
             </div>
           </div>
         )}
-
       </main>
     </div>
   );

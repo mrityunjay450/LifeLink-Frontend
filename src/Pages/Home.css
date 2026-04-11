@@ -135,8 +135,8 @@
   backdrop-filter: blur(8px);
 }
 
-.section-header h2 { font-size: 2.5rem; color: #333; margin-bottom: 10px; }
-.section-header p { color: #666; font-size: 1.2rem; margin-bottom: 50px; }
+.section-header h2 { font-size: 2.5rem; color: #ffffff; margin-bottom: 10px; }
+.section-header p { color: #b9b9b9; font-size: 1.2rem; margin-bottom: 50px; }
 
 .steps-grid {
   display: grid;

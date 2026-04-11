@@ -34,14 +34,21 @@ const Login = ({ setIsLoggedIn, setUserName }) => {
 
         if (response.ok) {
           alert(`🎉 Welcome back, ${data.user.name}!`);
+          
+          // 🚀 LOCAL STORAGE SETUP (With Bug Fixes)
+          localStorage.setItem('lastDonationDate', data.lastDonationDate || "null");
           localStorage.setItem('token', data.token);
           localStorage.setItem('userName', data.user.name);
-          localStorage.setItem('userRole', data.user.role);
           localStorage.setItem('userEmail', data.user.email);
+          
+          // 🚀 FIXED: 'role' aur 'userRole' dono save kiye taaki App.jsx ka pop-up theek chale
+          localStorage.setItem('userRole', data.user.role);
+          localStorage.setItem('role', data.user.role); 
 
           setIsLoggedIn(true);
           setUserName(data.user.name);
 
+          // Redirect as per role
           if (data.user.role === 'donor') navigate('/donor-dashboard');
           else if (data.user.role === 'hospital') navigate('/hospital-dashboard');
           else if (data.user.role === 'patient') navigate('/patient-dashboard');
@@ -73,8 +80,8 @@ const Login = ({ setIsLoggedIn, setUserName }) => {
       const data = await response.json();
 
       if (response.ok) {
-        alert("🎉 Registration Successful!");
-        setIsLogin(true);
+        alert("🎉 Registration Successful! Please sign in.");
+        setIsLogin(true); // Form ko login mode mein switch kar do
       } else {
         alert("❌ Error: " + data.message);
       }
