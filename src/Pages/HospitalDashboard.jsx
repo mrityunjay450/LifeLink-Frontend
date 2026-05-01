@@ -117,21 +117,40 @@ const HospitalDashboard = () => {
   const [campData, setCampData] = useState({ campName: '', date: '', time: '', location: '', description: '' });
   const handleCampChange = (e) => setCampData({ ...campData, [e.target.name]: e.target.value });
 
+  // 🚀 FIXED: handleCampSubmit updated with hospitalId requirement
   const handleCampSubmit = async (e) => {
     e.preventDefault();
     try {
-      const campPayload = { ...campData, hospitalName: userName }; 
+      // 🟢 localstorage se ID fetch karna (Agar ID login ke waqt '_id' naam se save hai toh ise badal dena)
+      const userId = localStorage.getItem('userId') || localStorage.getItem('_id') || localStorage.getItem('id'); 
+
+      if (!userId) {
+        alert("Hospital ID not found! Please login again.");
+        return;
+      }
+
+      const campPayload = { 
+        ...campData, 
+        hospitalName: userName,
+        hospitalId: userId // 🚀 YE FIELD ADD KI GAYI HAI
+      }; 
+
       const response = await fetch('https://lifelink-api-tlx8.onrender.com/api/camps/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(campPayload)
       });
+
       if (response.ok) {
         alert("📢 Camp successfully published!");
         setCampData({ campName: '', date: '', time: '', location: '', description: '' });
-        fetchMyCamps();
+        fetchMyCamps(); // Form clean hone ke baad updated list fetch karo
+      } else {
+        alert("❌ Error publishing camp! Check the console.");
       }
-    } catch (error) { alert("Server error!"); }
+    } catch (error) { 
+      alert("Server error!"); 
+    }
   };
 
   const handleCompleteCamp = async (campId) => {
