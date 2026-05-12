@@ -33,26 +33,38 @@ const Login = ({ setIsLoggedIn, setUserName }) => {
         const data = await response.json();
 
         if (response.ok) {
-          alert(`🎉 Welcome back, ${data.user.name}!`);
+          // 🚀 THE ULTIMATE ID FINDER (Bug Fixed Here)
+          // Ye check karega ki ID backend se kis naam se aayi hai aur undefined hone se rokega
+          const finalUserId = data.user?._id || data.user?.id || data._id || data.id;
+          const finalUserName = data.user?.name || data.name || "User";
+          const finalUserEmail = data.user?.email || data.email || formData.email;
+          const finalUserRole = data.user?.role || data.role;
+
+          alert(`🎉 Welcome back, ${finalUserName}!`);
           
-          // 🚀 LOCAL STORAGE SETUP (With Bug Fixes)
+          // 🚀 LOCAL STORAGE SETUP (With guaranteed valid values)
           localStorage.setItem('lastDonationDate', data.lastDonationDate || "null");
-          localStorage.setItem('token', data.token);
-          localStorage.setItem('userName', data.user.name);
-          localStorage.setItem('userEmail', data.user.email);
-          localStorage.setItem('userId', data.user._id);
+          localStorage.setItem('token', data.token || "");
+          localStorage.setItem('userName', finalUserName);
+          localStorage.setItem('userEmail', finalUserEmail);
           
-          // 🚀 FIXED: 'role' aur 'userRole' dono save kiye taaki App.jsx ka pop-up theek chale
-          localStorage.setItem('userRole', data.user.role);
-          localStorage.setItem('role', data.user.role); 
+          // Yehi wo field hai jo pehle 'undefined' ho rahi thi
+          if (finalUserId) {
+            localStorage.setItem('userId', finalUserId);
+          } else {
+            console.error("Critical Error: Backend did not send an ID!");
+          }
+          
+          localStorage.setItem('userRole', finalUserRole);
+          localStorage.setItem('role', finalUserRole); 
 
           setIsLoggedIn(true);
-          setUserName(data.user.name);
+          setUserName(finalUserName);
 
           // Redirect as per role
-          if (data.user.role === 'donor') navigate('/donor-dashboard');
-          else if (data.user.role === 'hospital') navigate('/hospital-dashboard');
-          else if (data.user.role === 'patient') navigate('/patient-dashboard');
+          if (finalUserRole === 'donor') navigate('/donor-dashboard');
+          else if (finalUserRole === 'hospital') navigate('/hospital-dashboard');
+          else if (finalUserRole === 'patient') navigate('/patient-dashboard');
 
         } else {
           alert("❌ Login Failed: " + data.message);
