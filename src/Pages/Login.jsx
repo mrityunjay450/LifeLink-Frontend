@@ -47,6 +47,7 @@ const Login = ({ setIsLoggedIn, setUserName }) => {
           localStorage.setItem('token', data.token || "");
           localStorage.setItem('userName', finalUserName);
           localStorage.setItem('userEmail', finalUserEmail);
+          localStorage.setItem('userPincode', data.user.pincode);
           
           // Yehi wo field hai jo pehle 'undefined' ho rahi thi
           if (finalUserId) {

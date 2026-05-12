@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom'; // 🚀 FIXED: useLocation add kiya
-import { jsPDF } from 'jspdf'; 
+import { jsPDF } from 'jspdf';
 import './DonorDashboard.css';
 
 const DonorDashboard = () => {
@@ -9,11 +9,11 @@ const DonorDashboard = () => {
 
   const userName = localStorage.getItem('userName') || 'Hero';
   const userRole = localStorage.getItem('userRole');
-  const userEmail = localStorage.getItem('userEmail') || 'donor@email.com'; 
+  const userEmail = localStorage.getItem('userEmail') || 'donor@email.com';
 
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
-  
+
   const [donationHistory, setDonationHistory] = useState([]);
   const [totalDonations, setTotalDonations] = useState(0);
 
@@ -42,10 +42,17 @@ const DonorDashboard = () => {
   useEffect(() => {
     const fetchRequests = async () => {
       try {
-        const response = await fetch('https://lifelink-api-tlx8.onrender.com/api/requests/active');
-        const data = await response.json();
-        if (response.ok) setRequests(data);
-      } catch (error) {} finally { setLoading(false); }
+        const donorPincode = localStorage.getItem('userPincode');
+
+        // Agar pincode hai, toh filter wali API call karo
+        if (donorPincode) {
+          const response = await fetch(`https://lifelink-api-tlx8.onrender.com/api/requests/active/${donorPincode}`);
+          const data = await response.json();
+          setRequests(data);
+        }
+      } catch (error) {
+        console.error("Error fetching requests:", error);
+      }
     };
     fetchRequests();
   }, []);
@@ -58,7 +65,7 @@ const DonorDashboard = () => {
         const data = await response.json();
         if (response.ok) {
           setDonationHistory(data);
-          setTotalDonations(data.length); 
+          setTotalDonations(data.length);
         }
       } catch (error) {
         console.error("Error fetching history", error);
@@ -71,7 +78,7 @@ const DonorDashboard = () => {
   useEffect(() => {
     const checkEligibility = () => {
       const lastDonation = localStorage.getItem('lastDonationDate');
-      
+
       if (!lastDonation || lastDonation === 'null' || lastDonation === 'undefined') {
         setIsEligible(true);
         setTimeLeft("Ready to Donate");
@@ -87,11 +94,11 @@ const DonorDashboard = () => {
       }
 
       const eligibleDate = new Date(lastDate.getTime() + 90 * 24 * 60 * 60 * 1000);
-      
+
       const timer = setInterval(() => {
         const now = new Date();
         const difference = eligibleDate - now;
-        
+
         if (difference <= 0) {
           setIsEligible(true);
           setTimeLeft("Ready to Donate");
@@ -105,17 +112,17 @@ const DonorDashboard = () => {
           setTimeLeft(`${days}d ${hours}h ${minutes}m ${seconds}s`);
         }
       }, 1000);
-      
+
       return () => clearInterval(timer);
     };
-    
+
     checkEligibility();
   }, []);
 
   const handleAccept = async (requestId) => {
     if (!isEligible) { alert("❌ Please wait for your 90-day recovery period."); return; }
     const donorContact = window.prompt("Please enter your mobile number:");
-    if (!donorContact) return; 
+    if (!donorContact) return;
     try {
       const response = await fetch(`https://lifelink-api-tlx8.onrender.com/api/requests/accept/${requestId}`, {
         method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ donorName: userName, donorContact: donorContact })
@@ -123,39 +130,39 @@ const DonorDashboard = () => {
       if (response.ok) {
         alert("🎉 Request Accepted! Please reach the hospital ASAP.");
         localStorage.setItem('lastDonationDate', new Date().toISOString());
-        window.location.reload(); 
+        window.location.reload();
       }
     } catch (error) { alert("Server error!"); }
   };
 
-// 🚀 PROFESSIONAL CERTIFICATE GENERATOR WITH TOTAL DONATIONS
+  // 🚀 PROFESSIONAL CERTIFICATE GENERATOR WITH TOTAL DONATIONS
   const generateCertificate = (count) => {
     const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
-    const centerX = 297 / 2; 
-    
+    const centerX = 297 / 2;
+
     doc.setDrawColor(178, 34, 34); doc.setLineWidth(3); doc.rect(10, 10, 277, 190);
     doc.setDrawColor(218, 165, 32); doc.setLineWidth(1); doc.rect(15, 15, 267, 180);
-    
+
     doc.setFont("times", "bold"); doc.setFontSize(36); doc.setTextColor(178, 34, 34); doc.text("LIFELINK", centerX, 45, null, null, "center");
     doc.setFont("helvetica", "bold"); doc.setFontSize(22); doc.setTextColor(50, 50, 50); doc.text("CERTIFICATE OF APPRECIATION", centerX, 65, null, null, "center");
-    
+
     doc.setFont("times", "italic"); doc.setFontSize(16); doc.setTextColor(80, 80, 80); doc.text("This certificate is proudly presented to", centerX, 90, null, null, "center");
-    
+
     doc.setFont("times", "bolditalic"); doc.setFontSize(36); doc.setTextColor(0, 0, 0); doc.text(userName, centerX, 115, null, null, "center");
-    
+
     doc.setDrawColor(200, 200, 200); doc.setLineWidth(0.5); doc.line(80, 120, 217, 120);
     doc.setFont("helvetica", "normal"); doc.setFontSize(14); doc.setTextColor(60, 60, 60);
     doc.text("In profound recognition of your selfless act of donating blood.", centerX, 135, null, null, "center");
     doc.text("Your noble contribution has given the gift of life to someone in urgent need.", centerX, 145, null, null, "center");
 
     // 🌟 FIXED: Removed Unicode '★' and used standard characters so jsPDF doesn't break
-    doc.setFont("times", "bold"); doc.setFontSize(18); doc.setTextColor(218, 165, 32); 
+    doc.setFont("times", "bold"); doc.setFontSize(18); doc.setTextColor(218, 165, 32);
     doc.text(`~ Total Lifesaving Donations: ${count} ~`, centerX, 160, null, null, "center");
-    
+
     doc.setFontSize(14); doc.setFont("times", "normal"); doc.setTextColor(0, 0, 0);
-    doc.text(`Date: ${new Date().toLocaleDateString()}`, 60, 180, null, null, "center"); doc.line(40, 182, 80, 182); 
-    doc.text("Authorized Signature", 237, 180, null, null, "center"); doc.line(207, 175, 267, 175); 
-    
+    doc.text(`Date: ${new Date().toLocaleDateString()}`, 60, 180, null, null, "center"); doc.line(40, 182, 80, 182);
+    doc.text("Authorized Signature", 237, 180, null, null, "center"); doc.line(207, 175, 267, 175);
+
     doc.save(`LifeLink_Hero_${userName}.pdf`);
   };
 
@@ -163,7 +170,7 @@ const DonorDashboard = () => {
     const file = e.target.files[0];
     if (file) {
       const base64 = await convertToBase64(file);
-      setProfilePic(base64); 
+      setProfilePic(base64);
     }
   };
 
@@ -183,7 +190,7 @@ const DonorDashboard = () => {
       });
       if (response.ok) {
         alert("✅ Profile picture updated successfully!");
-        localStorage.setItem('profilePic', profilePic); 
+        localStorage.setItem('profilePic', profilePic);
         setIsEditing(false);
       }
     } catch (error) { alert("Server Error"); }
@@ -338,10 +345,10 @@ const DonorDashboard = () => {
             <div style={{ background: 'white', padding: '25px', borderRadius: '12px', boxShadow: '0 4px 10px rgba(0,0,0,0.05)', marginBottom: '30px' }}>
               <form onSubmit={handlePasswordChange} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
                 <div style={{ gridColumn: 'span 2' }}>
-                  <label>Current Password</label><input type="password" required value={passwordData.currentPassword} onChange={(e) => setPasswordData({...passwordData, currentPassword: e.target.value})} style={{ width: '100%', padding: '10px' }} />
+                  <label>Current Password</label><input type="password" required value={passwordData.currentPassword} onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })} style={{ width: '100%', padding: '10px' }} />
                 </div>
-                <div><label>New Password</label><input type="password" required value={passwordData.newPassword} onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})} style={{ width: '100%', padding: '10px' }} /></div>
-                <div><label>Confirm Password</label><input type="password" required value={passwordData.confirmPassword} onChange={(e) => setPasswordData({...passwordData, confirmPassword: e.target.value})} style={{ width: '100%', padding: '10px' }} /></div>
+                <div><label>New Password</label><input type="password" required value={passwordData.newPassword} onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })} style={{ width: '100%', padding: '10px' }} /></div>
+                <div><label>Confirm Password</label><input type="password" required value={passwordData.confirmPassword} onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })} style={{ width: '100%', padding: '10px' }} /></div>
                 <button type="submit" style={{ gridColumn: 'span 2', padding: '12px', background: '#1976D2', color: 'white', border: 'none', borderRadius: '5px' }}>Update Password</button>
               </form>
             </div>
