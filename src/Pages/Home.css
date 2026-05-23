@@ -18,7 +18,7 @@
   justify-content: space-between;
   padding: 80px 10%;
   min-height: 80vh;
-  background: transparent; /* Background hata diya taaki piche ki image dikhe */
+  background: transparent;
 }
 
 .hero-content {
@@ -100,7 +100,7 @@
 
 .hero-img {
   width: 100%;
-  max-width: 450px;
+  max-width: 500px;
   z-index: 2;
   animation: float 4s ease-in-out infinite;
 }
@@ -179,7 +179,7 @@
   backdrop-filter: blur(8px);
 }
 
-.features-section h2 { font-size: 2.5rem; color: #333; margin-bottom: 50px; }
+.features-section h2 { font-size: 2.5rem; color: #ffffff; margin-bottom: 50px; }
 
 .features-grid {
   display: grid;

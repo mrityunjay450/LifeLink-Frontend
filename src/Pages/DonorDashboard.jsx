@@ -44,16 +44,23 @@ const DonorDashboard = () => {
       try {
         const donorPincode = localStorage.getItem('userPincode');
 
-        // Agar pincode hai, toh filter wali API call karo
         if (donorPincode) {
           const response = await fetch(`https://lifelink-api-tlx8.onrender.com/api/requests/active/${donorPincode}`);
           const data = await response.json();
+
+          // 🚀 FIXED: Data set karo AUR loading ko false karo
           setRequests(data);
+          setLoading(false);
+        } else {
+          // Agar Pincode nahi mila (nayi id bani ho), tab bhi loading false karni hai
+          setLoading(false);
         }
       } catch (error) {
         console.error("Error fetching requests:", error);
+        setLoading(false); // Error aaye toh bhi loading hatani hai
       }
     };
+
     fetchRequests();
   }, []);
 
@@ -271,16 +278,39 @@ const DonorDashboard = () => {
             <div className="requests-section">
               <h3>🚨 Urgent Matches Near You</h3>
               <div className="request-feed">
-                {loading ? <p>Loading live requests...</p> : requests.length === 0 ? <p>No urgent blood requests at the moment.</p> : (
+                {loading ? (
+                  <p>Loading live requests...</p>
+                ) : requests.length === 0 ? (
+                  <p>No urgent blood requests at the moment.</p>
+                ) : (
                   requests.map((req) => (
                     <div className="request-card" key={req._id}>
                       <div className="req-details">
-                        <h4>Need {req.bloodGroup} Blood <span className={`tag ${req.urgency}`}>{req.urgency === 'critical' ? '🔴 Critical' : '🟡 High Priority'}</span></h4>
-                        <p>👤 Patient: {req.patientName}</p><p>🏥 Location: {req.hospitalName} ({req.location})</p>
+                        <h4>
+                          Need {req.bloodGroup} Blood{' '}
+                          <span className={`tag ${req.urgency}`}>
+                            {req.urgency === 'critical' ? '🔴 Critical' : '🟡 High Priority'}
+                          </span>
+                        </h4>
+                        <p>👤 Patient: {req.patientName}</p>
+                        <p>🏥 Location: {req.hospitalName} ({req.location})</p>
                       </div>
                       <div className="req-actions">
-                        <button className="btn-map" onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(req.hospitalName + ' ' + req.location)}`, '_blank')}>📍 View Map</button>
-                        <button className="btn-accept" onClick={() => handleAccept(req._id)} disabled={!isEligible} style={{ opacity: isEligible ? 1 : 0.5, cursor: isEligible ? 'pointer' : 'not-allowed' }}>✅ Accept Request</button>
+                        {/* 🚀 FIXED: Proper Google Maps Search URL */}
+                        <button
+                          className="btn-map"
+                          onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(req.hospitalName + ' ' + req.location)}`, '_blank')}
+                        >
+                          📍 View Map
+                        </button>
+                        <button
+                          className="btn-accept"
+                          onClick={() => handleAccept(req._id)}
+                          disabled={!isEligible}
+                          style={{ opacity: isEligible ? 1 : 0.5, cursor: isEligible ? 'pointer' : 'not-allowed' }}
+                        >
+                          ✅ Accept Request
+                        </button>
                       </div>
                     </div>
                   ))

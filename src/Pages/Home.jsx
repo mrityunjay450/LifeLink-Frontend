@@ -41,7 +41,7 @@ const Home = ({ isLoggedIn }) => {
         <div className="hero-image-wrapper">
           {/* Ek animated pulse effect ke andar image */}
           <div className="pulse-ring"></div>
-          <img src="/image/logo.png" alt="LifeLink Connect" className="hero-img" /> 
+          <img src="/image/d&d.png" alt="LifeLink Connect" className="hero-img" /> 
         </div>
       </section>
 

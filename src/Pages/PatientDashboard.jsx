@@ -7,12 +7,11 @@ const PatientDashboard = () => {
   const navigate = useNavigate();
   const userName = localStorage.getItem('userName') || 'Patient';
   const userRole = localStorage.getItem('userRole');
-  const userEmail = localStorage.getItem('userEmail') || ''; // 🚀 NAYA: Email backend ke liye
+  const userEmail = localStorage.getItem('userEmail') || ''; 
 
   const [myRequests, setMyRequests] = useState([]);
   const [activeTab, setActiveTab] = useState('dashboard');
   
-  // 🚀 NAYA: Password States
   const [passwordData, setPasswordData] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
 
   // Security Check
@@ -35,9 +34,9 @@ const PatientDashboard = () => {
     fetchMyRequests();
   }, [userName]);
 
-  // Form State
+  // 🚀 FIXED: Form State me 'pincode' add kar diya gaya hai
   const [formData, setFormData] = useState({
-    bloodGroup: '', hospitalName: '', contactNumber: '', urgency: 'high', location: ''
+    bloodGroup: '', hospitalName: '', contactNumber: '', urgency: 'high', location: '', pincode: ''
   });
 
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -55,17 +54,20 @@ const PatientDashboard = () => {
       });
 
       if (response.ok) {
-        alert("🚨 Emergency Request Broadcasted to Donors!");
-        setFormData({ bloodGroup: '', hospitalName: '', contactNumber: '', urgency: 'high', location: '' });
+        alert("🚨 Emergency Request Broadcasted to Local Donors!");
+        // 🚀 FIXED: Reset karne ke time pincode bhi khali karna hai
+        setFormData({ bloodGroup: '', hospitalName: '', contactNumber: '', urgency: 'high', location: '', pincode: '' });
         fetchMyRequests(); 
         setActiveTab('dashboard'); 
+      } else {
+        alert("❌ Error generating request. Please try again.");
       }
     } catch (error) {
       alert("Server error!");
     }
   };
 
-  // 🚀 NAYA: PASSWORD CHANGE HANDLER
+  // PASSWORD CHANGE HANDLER
   const handlePasswordChange = async (e) => {
     e.preventDefault();
     if (passwordData.newPassword !== passwordData.confirmPassword) {
@@ -92,7 +94,7 @@ const PatientDashboard = () => {
     }
   };
 
-  // 🚀 NAYA: DELETE ACCOUNT HANDLER
+  // DELETE ACCOUNT HANDLER
   const handleDeleteAccount = async () => {
     const confirmName = window.prompt(`DANGER ZONE: Type "${userName}" to permanently delete your patient account.`);
     if (confirmName === userName) {
@@ -124,7 +126,7 @@ const PatientDashboard = () => {
           </li>
           <li onClick={() => {
             localStorage.clear();
-            window.location.href = '/'; 
+            window.location.href = '/login'; 
           }}>
             🚪 Logout
           </li>
@@ -220,12 +222,19 @@ const PatientDashboard = () => {
                 <label>City / Complete Address *</label>
                 <input type="text" name="location" value={formData.location} onChange={handleChange} required />
               </div>
-              <button type="submit" className="submit-req-btn full-width">Submit Request</button>
+              
+              {/* 🚀 FIXED: Naya Pincode Field yahan add kiya hai */}
+              <div className="req-input-group full-width">
+                <label>Pincode * (To notify local donors)</label>
+                <input type="text" name="pincode" value={formData.pincode} onChange={handleChange} required pattern="[0-9]{6}" placeholder="e.g. 800001" />
+              </div>
+
+              <button type="submit" className="submit-req-btn full-width">Broadcast Request</button>
             </form>
           </div>
         )}
 
-        {/* 🚀 TAB 3: PROFILE SETTINGS (CHANGE PASSWORD & DELETE) */}
+        {/* TAB 3: PROFILE SETTINGS */}
         {activeTab === 'profile' && (
           <div className="tracker-section">
             <h3 style={{ borderLeft: '4px solid #333', paddingLeft: '10px' }}>⚙️ Profile Settings</h3>
@@ -235,7 +244,7 @@ const PatientDashboard = () => {
               <p style={{ fontSize: '1.1rem' }}><strong>Role:</strong> Patient / Receiver</p>
             </div>
 
-            {/* 🔐 PASSWORD CHANGE */}
+            {/* PASSWORD CHANGE */}
             <h3 style={{ borderLeft: '4px solid #1976D2', paddingLeft: '10px', color: '#1976D2' }}>🔐 Change Password</h3>
             <div style={{ background: 'white', padding: '25px', borderRadius: '12px', boxShadow: '0 4px 10px rgba(0,0,0,0.05)', marginBottom: '30px' }}>
               <form onSubmit={handlePasswordChange} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
@@ -255,7 +264,7 @@ const PatientDashboard = () => {
               </form>
             </div>
 
-            {/* ⚠️ DELETE ACCOUNT */}
+            {/* DELETE ACCOUNT */}
             <h3 style={{ borderLeft: '4px solid #d32f2f', paddingLeft: '10px', color: '#d32f2f' }}>⚠️ Account Deletion</h3>
             <div style={{ background: '#fff5f5', padding: '25px', borderRadius: '12px', border: '1px solid #ffcdd2' }}>
               <h4 style={{ color: '#d32f2f', margin: '0 0 10px 0', fontSize: '1.2rem' }}>Close Patient Account</h4>
