@@ -26,10 +26,10 @@ function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('token'));
   const [userName, setUserName] = useState(localStorage.getItem('userName') || "");
 
-  // 🔐 --- 30-MINUTE AUTO LOGOUT (SECURITY LOGIC) SHURU --- 🔐
+  // 🔐 --- 5-MINUTE AUTO LOGOUT (SECURITY LOGIC) SHURU --- 🔐
   useEffect(() => {
     let inactivityTimer;
-    const THIRTY_MINUTES = 30 * 60 * 1000; // 30 mins in milliseconds
+    const FIVE_MINUTES = 5 * 60 * 1000; // 30 mins in milliseconds
 
     const forceLogout = () => {
       // Check karte hain ki kya user sach me logged in hai
