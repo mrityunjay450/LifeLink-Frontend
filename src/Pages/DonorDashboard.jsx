@@ -48,16 +48,14 @@ const DonorDashboard = () => {
           const response = await fetch(`https://lifelink-api-tlx8.onrender.com/api/requests/active/${donorPincode}`);
           const data = await response.json();
 
-          // 🚀 FIXED: Data set karo AUR loading ko false karo
           setRequests(data);
           setLoading(false);
         } else {
-          // Agar Pincode nahi mila (nayi id bani ho), tab bhi loading false karni hai
           setLoading(false);
         }
       } catch (error) {
         console.error("Error fetching requests:", error);
-        setLoading(false); // Error aaye toh bhi loading hatani hai
+        setLoading(false);
       }
     };
 
@@ -81,49 +79,47 @@ const DonorDashboard = () => {
     fetchHistory();
   }, [userName]);
 
-  // ROCK-SOLID ELIGIBILITY TIMER LOGIC
+// ELIGIBILITY TIMER LOGIC
   useEffect(() => {
-    const checkEligibility = () => {
-      const lastDonation = localStorage.getItem('lastDonationDate');
+    const lastDonation = localStorage.getItem('lastDonationDate');
 
-      if (!lastDonation || lastDonation === 'null' || lastDonation === 'undefined') {
+    if (!lastDonation || lastDonation === 'null' || lastDonation === 'undefined') {
+      setIsEligible(true);
+      setTimeLeft("✅ Ready to Donate");
+      return;
+    }
+
+    const lastDate = new Date(lastDonation);
+
+    if (isNaN(lastDate.getTime())) {
+      setIsEligible(true);
+      setTimeLeft("✅ Ready to Donate");
+      return;
+    }
+
+    const eligibleDate = new Date(lastDate.getTime() + 90 * 24 * 60 * 60 * 1000);
+
+    const timer = setInterval(() => {
+      const now = new Date();
+      const difference = eligibleDate - now;
+
+      if (difference <= 0) {
         setIsEligible(true);
-        setTimeLeft("Ready to Donate");
-        return;
+        setTimeLeft("✅ Ready to Donate");
+        clearInterval(timer);
+      } else {
+        setIsEligible(false);
+        const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((difference / (1000 * 60 * 60)) % 24);
+        const minutes = Math.floor((difference / 1000 / 60) % 60);
+        const seconds = Math.floor((difference / 1000) % 60);
+        
+        setTimeLeft(`⏳ ${days}d ${hours}h ${minutes}m ${seconds}s left`);
       }
+    }, 1000);
 
-      const lastDate = new Date(lastDonation);
-
-      if (isNaN(lastDate.getTime())) {
-        setIsEligible(true);
-        setTimeLeft("Ready to Donate");
-        return;
-      }
-
-      const eligibleDate = new Date(lastDate.getTime() + 90 * 24 * 60 * 60 * 1000);
-
-      const timer = setInterval(() => {
-        const now = new Date();
-        const difference = eligibleDate - now;
-
-        if (difference <= 0) {
-          setIsEligible(true);
-          setTimeLeft("Ready to Donate");
-          clearInterval(timer);
-        } else {
-          setIsEligible(false);
-          const days = Math.floor(difference / (1000 * 60 * 60 * 24));
-          const hours = Math.floor((difference / (1000 * 60 * 60)) % 24);
-          const minutes = Math.floor((difference / 1000 / 60) % 60);
-          const seconds = Math.floor((difference / 1000) % 60);
-          setTimeLeft(`${days}d ${hours}h ${minutes}m ${seconds}s`);
-        }
-      }, 1000);
-
-      return () => clearInterval(timer);
-    };
-
-    checkEligibility();
+    return () => clearInterval(timer);
+    
   }, []);
 
   const handleAccept = async (requestId) => {
