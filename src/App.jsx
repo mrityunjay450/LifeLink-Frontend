@@ -26,31 +26,77 @@ function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('token'));
   const [userName, setUserName] = useState(localStorage.getItem('userName') || "");
 
+  // 🔐 --- 30-MINUTE AUTO LOGOUT (SECURITY LOGIC) SHURU --- 🔐
+  useEffect(() => {
+    let inactivityTimer;
+    const THIRTY_MINUTES = 30 * 60 * 1000; // 30 mins in milliseconds
+
+    const forceLogout = () => {
+      // Check karte hain ki kya user sach me logged in hai
+      const hasToken = localStorage.getItem('token'); 
+      if (hasToken) {
+        localStorage.clear(); // Saara data delete (token, naam, date sab saaf)
+        window.location.href = '/login'; // User ko wapas login page par bhej do
+      }
+    };
+
+    const resetInactivityTimer = () => {
+      clearTimeout(inactivityTimer);
+      // Tab close hone par bhi time yaad rakhne ke liye save karo
+      localStorage.setItem('lastActiveTime', new Date().getTime().toString());
+      
+      // Naya 30 minute ka timer start karo
+      inactivityTimer = setTimeout(forceLogout, THIRTY_MINUTES);
+    };
+
+    const checkTabReopen = () => {
+      const lastActive = localStorage.getItem('lastActiveTime');
+      if (lastActive) {
+        const timePassed = new Date().getTime() - parseInt(lastActive);
+        if (timePassed > THIRTY_MINUTES) {
+          forceLogout(); // Agar 30 min se zyada ho gaye toh app khulte hi bahar
+        }
+      }
+    };
+
+    checkTabReopen();
+
+    // Mouse ya keyboard hilne par timer reset karo
+    window.addEventListener('mousemove', resetInactivityTimer);
+    window.addEventListener('keydown', resetInactivityTimer);
+    window.addEventListener('click', resetInactivityTimer);
+    window.addEventListener('scroll', resetInactivityTimer);
+
+    resetInactivityTimer();
+
+    return () => {
+      clearTimeout(inactivityTimer);
+      window.removeEventListener('mousemove', resetInactivityTimer);
+      window.removeEventListener('keydown', resetInactivityTimer);
+      window.removeEventListener('click', resetInactivityTimer);
+      window.removeEventListener('scroll', resetInactivityTimer);
+    };
+  }, []);
+  // 🔐 --- AUTO LOGOUT LOGIC KHATAM --- 🔐
+
+
   // 🚀 --- REAL-TIME NOTIFICATION LOGIC SHURU --- 🚀
   useEffect(() => {
-    // Aapke Render backend ki link yahan lagayi hai
     const socket = io("https://lifelink-api-tlx8.onrender.com"); 
 
-    // Jab Frontend socket se connect ho
     socket.on("connect", () => {
       console.log("🟢 Frontend Connected to Socket.io:", socket.id);
     });
 
-    // Jab Backend se signal aaye
     socket.on("newBloodRequest", (data) => {
       
-      // 🚀 --- THE VIP FILTER (Sirf Donors ke liye) --- 🚀
-      // 1. Check karo ki kya LocalStorage mein user ka role 'donor' hai
       const userRole = localStorage.getItem('role') ? localStorage.getItem('role').toLowerCase() : ""; 
-      
-      // 2. Ya fir check karo ki kya wo kisi aisi URL par hai jisme 'donor' aata ho (jaise /donor-dashboard)
       const isDonorPage = window.location.pathname.includes('donor');
 
-      // Agar dono mein se koi bhi ek baat sach hai, tabhi Pop-up dikhao!
       if (userRole === 'donor' || isDonorPage) {
         toast.error(`🚨 URGENT: ${data.message}`, {
           position: "top-right",
-          autoClose: 10000, // 10 second baad apne aap band hoga
+          autoClose: 10000, 
           hideProgressBar: false,
           closeOnClick: true,
           pauseOnHover: true,
@@ -60,7 +106,6 @@ function App() {
       }
     });
 
-    // Cleanup function
     return () => {
       socket.disconnect();
     };
@@ -69,7 +114,6 @@ function App() {
 
   return (
     <Router>
-      {/* 🚀 ToastContainer yahan lagaya hai taaki kisi bhi page par pop-up aa sake */}
       <ToastContainer />
       
       <Navbar 
