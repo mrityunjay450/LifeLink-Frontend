@@ -46,14 +46,14 @@ function App() {
       localStorage.setItem('lastActiveTime', new Date().getTime().toString());
       
       // Naya 30 minute ka timer start karo
-      inactivityTimer = setTimeout(forceLogout, THIRTY_MINUTES);
+      inactivityTimer = setTimeout(forceLogout, FIVE_MINUTES);
     };
 
     const checkTabReopen = () => {
       const lastActive = localStorage.getItem('lastActiveTime');
       if (lastActive) {
         const timePassed = new Date().getTime() - parseInt(lastActive);
-        if (timePassed > THIRTY_MINUTES) {
+        if (timePassed > FIVE_MINUTES) {
           forceLogout(); // Agar 30 min se zyada ho gaye toh app khulte hi bahar
         }
       }
