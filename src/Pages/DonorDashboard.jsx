@@ -122,20 +122,52 @@ const DonorDashboard = () => {
     
   }, []);
 
-  const handleAccept = async (requestId) => {
-    if (!isEligible) { alert("❌ Please wait for your 90-day recovery period."); return; }
+const handleAccept = async (requestId) => {
+    // 1. Eligibility Check
+    if (!isEligible) { 
+      alert("❌ Please wait for your 90-day recovery period."); 
+      return; 
+    }
+
+    // 2. Get Contact Number
     const donorContact = window.prompt("Please enter your mobile number:");
     if (!donorContact) return;
+
+    // 🚀 3. Get Email (Ye naya step hai multi-donor track karne ke liye)
+    // Aapne login ke time jo email save kiya tha (email ya userEmail), wo utha rahe hain
+    const donorEmail = localStorage.getItem('email') || localStorage.getItem('userEmail');
+    
+    if (!donorEmail) {
+      alert("❌ Email not found! Please logout and login again.");
+      return;
+    }
+
     try {
       const response = await fetch(`https://lifelink-api-tlx8.onrender.com/api/requests/accept/${requestId}`, {
-        method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ donorName: userName, donorContact: donorContact })
+        method: 'PUT', 
+        headers: { 'Content-Type': 'application/json' }, 
+        // 🚀 NAYA UPDATE: donorEmail ko bhi JSON mein add kar diya
+        body: JSON.stringify({ 
+          donorName: userName, 
+          donorContact: donorContact,
+          donorEmail: donorEmail
+        })
       });
+
+      const data = await response.json(); // Backend ka response padhne ke liye
+
       if (response.ok) {
         alert("🎉 Request Accepted! Please reach the hospital ASAP.");
         localStorage.setItem('lastDonationDate', new Date().toISOString());
-        window.location.reload();
+        window.location.reload(); // Page reload hone par timer shuru ho jayega
+      } else {
+        // Agar donor ne pehle hi accept kar liya tha, toh backend ye message bhejega
+        alert(`⚠️ ${data.message || "Could not accept request."}`);
       }
-    } catch (error) { alert("Server error!"); }
+    } catch (error) { 
+      alert("Server error!"); 
+      console.error(error);
+    }
   };
 
   // 🚀 PROFESSIONAL CERTIFICATE GENERATOR WITH TOTAL DONATIONS
