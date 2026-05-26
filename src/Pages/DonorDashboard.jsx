@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom'; // 🚀 FIXED: useLocation add kiya
+import { useNavigate, useLocation } from 'react-router-dom';
 import { jsPDF } from 'jspdf';
 import './DonorDashboard.css';
 
 const DonorDashboard = () => {
   const navigate = useNavigate();
-  const location = useLocation(); // 🚀 NAYA: Navbar se aane wale clicks track karne ke liye
+  const location = useLocation();
 
   const userName = localStorage.getItem('userName') || 'Hero';
   const userRole = localStorage.getItem('userRole');
-  const userEmail = localStorage.getItem('userEmail') || 'donor@email.com';
+  const userEmail = localStorage.getItem('userEmail') || localStorage.getItem('email');
 
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -25,29 +25,27 @@ const DonorDashboard = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [passwordData, setPasswordData] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
 
-  // 🚀 NAYA: Navbar se aane wale "Profile" ya "Dashboard" click ko handle karna
+  // 🚀 Handle Tab Switching from Navbar
   useEffect(() => {
     if (location.state && location.state.tab) {
       setActiveTab(location.state.tab);
-      // Ek baar tab change hone ke baad history state clear kar do taaki refresh par issue na aaye
       window.history.replaceState({}, document.title);
     }
   }, [location]);
 
+  // Prevent unauthorized access
   useEffect(() => {
     if (userRole !== 'donor') navigate('/');
   }, [navigate, userRole]);
 
-  // FETCH ACTIVE EMERGENCY REQUESTS
+  // 🟢 FETCH ACTIVE EMERGENCY REQUESTS
   useEffect(() => {
     const fetchRequests = async () => {
       try {
         const donorPincode = localStorage.getItem('userPincode');
-
         if (donorPincode) {
           const response = await fetch(`https://lifelink-api-tlx8.onrender.com/api/requests/active/${donorPincode}`);
           const data = await response.json();
-
           setRequests(data);
           setLoading(false);
         } else {
@@ -58,11 +56,10 @@ const DonorDashboard = () => {
         setLoading(false);
       }
     };
-
     fetchRequests();
   }, []);
 
-  // FETCH REAL DONATION HISTORY FROM BACKEND
+  // 🟢 FETCH REAL DONATION HISTORY FROM BACKEND
   useEffect(() => {
     const fetchHistory = async () => {
       try {
@@ -79,7 +76,7 @@ const DonorDashboard = () => {
     fetchHistory();
   }, [userName]);
 
-// ELIGIBILITY TIMER LOGIC
+  // 🟢 ELIGIBILITY TIMER LOGIC
   useEffect(() => {
     const lastDonation = localStorage.getItem('lastDonationDate');
 
@@ -113,64 +110,56 @@ const DonorDashboard = () => {
         const hours = Math.floor((difference / (1000 * 60 * 60)) % 24);
         const minutes = Math.floor((difference / 1000 / 60) % 60);
         const seconds = Math.floor((difference / 1000) % 60);
-        
+
         setTimeLeft(`⏳ ${days}d ${hours}h ${minutes}m ${seconds}s left`);
       }
     }, 1000);
 
     return () => clearInterval(timer);
-    
   }, []);
 
-const handleAccept = async (requestId) => {
-    // 1. Eligibility Check
-    if (!isEligible) { 
-      alert("❌ Please wait for your 90-day recovery period."); 
-      return; 
+  // 🟢 ACCEPT REQUEST LOGIC (MULTI-DONOR SUPPORT)
+  const handleAccept = async (requestId) => {
+    if (!isEligible) {
+      alert("❌ Please wait for your 90-day recovery period.");
+      return;
     }
 
-    // 2. Get Contact Number
     const donorContact = window.prompt("Please enter your mobile number:");
     if (!donorContact) return;
 
-    // 🚀 3. Get Email (Ye naya step hai multi-donor track karne ke liye)
-    // Aapne login ke time jo email save kiya tha (email ya userEmail), wo utha rahe hain
-    const donorEmail = localStorage.getItem('email') || localStorage.getItem('userEmail');
-    
-    if (!donorEmail) {
+    if (!userEmail) {
       alert("❌ Email not found! Please logout and login again.");
       return;
     }
 
     try {
       const response = await fetch(`https://lifelink-api-tlx8.onrender.com/api/requests/accept/${requestId}`, {
-        method: 'PUT', 
-        headers: { 'Content-Type': 'application/json' }, 
-        // 🚀 NAYA UPDATE: donorEmail ko bhi JSON mein add kar diya
-        body: JSON.stringify({ 
-          donorName: userName, 
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          donorName: userName,
           donorContact: donorContact,
-          donorEmail: donorEmail
+          donorEmail: userEmail
         })
       });
 
-      const data = await response.json(); // Backend ka response padhne ke liye
+      const data = await response.json();
 
       if (response.ok) {
         alert("🎉 Request Accepted! Please reach the hospital ASAP.");
         localStorage.setItem('lastDonationDate', new Date().toISOString());
-        window.location.reload(); // Page reload hone par timer shuru ho jayega
+        window.location.reload();
       } else {
-        // Agar donor ne pehle hi accept kar liya tha, toh backend ye message bhejega
         alert(`⚠️ ${data.message || "Could not accept request."}`);
       }
-    } catch (error) { 
-      alert("Server error!"); 
+    } catch (error) {
+      alert("Server error!");
       console.error(error);
     }
   };
 
-  // 🚀 PROFESSIONAL CERTIFICATE GENERATOR WITH TOTAL DONATIONS
+  // 🟢 PROFESSIONAL CERTIFICATE GENERATOR
   const generateCertificate = (count) => {
     const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
     const centerX = 297 / 2;
@@ -190,7 +179,6 @@ const handleAccept = async (requestId) => {
     doc.text("In profound recognition of your selfless act of donating blood.", centerX, 135, null, null, "center");
     doc.text("Your noble contribution has given the gift of life to someone in urgent need.", centerX, 145, null, null, "center");
 
-    // 🌟 FIXED: Removed Unicode '★' and used standard characters so jsPDF doesn't break
     doc.setFont("times", "bold"); doc.setFontSize(18); doc.setTextColor(218, 165, 32);
     doc.text(`~ Total Lifesaving Donations: ${count} ~`, centerX, 160, null, null, "center");
 
@@ -201,6 +189,7 @@ const handleAccept = async (requestId) => {
     doc.save(`LifeLink_Hero_${userName}.pdf`);
   };
 
+  // 🟢 PROFILE UPDATES & SETTINGS
   const handlePhotoUpload = async (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -256,6 +245,36 @@ const handleAccept = async (requestId) => {
     }
   };
 
+  // 🚀 RESET TIMER FUNCTION (For Testing/Admin Purposes)
+const handleResetTimer = async () => {
+    const confirmReset = window.confirm("Are you sure you want to stop the countdown?");
+    if (!confirmReset) return;
+
+    try {
+      // ⚠️ Dhyan dein: Apni backend file ke hisaab se URL check karein (auth ya requests)
+      const response = await fetch(`https://lifelink-api-tlx8.onrender.com/api/auth/reset-timer`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: userEmail }) 
+      });
+
+      const data = await response.json(); // 🚀 Backend ka asli message read karna
+
+      if (response.ok) {
+        alert("✅ Countdown Stopped! You are now eligible to donate.");
+        localStorage.removeItem('lastDonationDate'); 
+        window.location.reload(); 
+      } else {
+        // 🚀 Ab humein pata chalega ki galti kya hai!
+        alert(`❌ Error from Backend: ${data.message || "Failed"}`);
+      }
+    } catch (error) {
+      alert("Server Error! Check Console.");
+      console.error(error);
+    }
+  };
+
+
   return (
     <div className="dashboard-wrapper">
       <aside className="sidebar">
@@ -278,7 +297,7 @@ const handleAccept = async (requestId) => {
           </div>
         </div>
 
-        {/* TAB 1: MAIN DASHBOARD */}
+        {/* 🟢 TAB 1: MAIN DASHBOARD */}
         {activeTab === 'dashboard' && (
           <>
             <div className="stats-grid">
@@ -311,44 +330,82 @@ const handleAccept = async (requestId) => {
                 ) : requests.length === 0 ? (
                   <p>No urgent blood requests at the moment.</p>
                 ) : (
-                  requests.map((req) => (
-                    <div className="request-card" key={req._id}>
-                      <div className="req-details">
-                        <h4>
-                          Need {req.bloodGroup} Blood{' '}
-                          <span className={`tag ${req.urgency}`}>
-                            {req.urgency === 'critical' ? '🔴 Critical' : '🟡 High Priority'}
-                          </span>
-                        </h4>
-                        <p>👤 Patient: {req.patientName}</p>
-                        <p>🏥 Location: {req.hospitalName} ({req.location})</p>
+                  requests.map((req) => {
+                    // 🚀 MULTI-DONOR BACKUP SYSTEM LOGIC
+                    const donorCount = req.acceptedDonors ? req.acceptedDonors.length : 0;
+                    const isAlreadyAcceptedByMe = req.acceptedDonors?.some(d => d.donorEmail === userEmail);
+
+                    return (
+                      <div className="request-card" key={req._id}>
+                        <div className="req-details">
+                          <h4>
+                            Need {req.bloodGroup} Blood{' '}
+                            <span className={`tag ${req.urgency}`}>
+                              {req.urgency === 'critical' ? '🔴 Critical' : '🟡 High Priority'}
+                            </span>
+                          </h4>
+                          <p>👤 Patient: {req.patientName}</p>
+                          <p>🏥 Location: {req.hospitalName} ({req.location})</p>
+
+                          {/* 🚀 BACKUP DONOR BADGES */}
+                          <div style={{ marginTop: '10px' }}>
+                            {donorCount > 0 ? (
+                              <span style={{ backgroundColor: '#fff3e0', color: '#e65100', padding: '5px 10px', borderRadius: '4px', fontSize: '13px', fontWeight: 'bold' }}>
+                                ⏳ {donorCount} Donor(s) already volunteered (Backup needed)
+                              </span>
+                            ) : (
+                              <span style={{ backgroundColor: '#e8f5e9', color: '#2e7d32', padding: '5px 10px', borderRadius: '4px', fontSize: '13px', fontWeight: 'bold' }}>
+                                🟢 No donors yet (Be the first!)
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="req-actions" style={{ marginTop: '15px' }}>
+                          <button
+                            className="btn-map"
+                            onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(req.hospitalName + ' ' + req.location)}`, '_blank')}
+                          >
+                            📍 View Map
+                          </button>
+
+                          {/* 🚀 DYNAMIC BUTTON LOGIC */}
+                          {isAlreadyAcceptedByMe ? (
+                            <button
+                              disabled
+                              style={{ backgroundColor: '#4caf50', color: 'white', padding: '10px 15px', border: 'none', borderRadius: '5px', cursor: 'not-allowed', fontWeight: 'bold' }}
+                            >
+                              ✅ You accepted this
+                            </button>
+                          ) : donorCount > 0 ? (
+                            <button
+                              onClick={() => handleAccept(req._id)}
+                              disabled={!isEligible}
+                              style={{ backgroundColor: '#ff9800', color: 'white', padding: '10px 15px', border: 'none', borderRadius: '5px', cursor: isEligible ? 'pointer' : 'not-allowed', fontWeight: 'bold', opacity: isEligible ? 1 : 0.5 }}
+                            >
+                              🤝 Accept as Backup
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => handleAccept(req._id)}
+                              disabled={!isEligible}
+                              className="btn-accept"
+                              style={{ opacity: isEligible ? 1 : 0.5, cursor: isEligible ? 'pointer' : 'not-allowed' }}
+                            >
+                              📢 Accept Request
+                            </button>
+                          )}
+                        </div>
                       </div>
-                      <div className="req-actions">
-                        {/* 🚀 FIXED: Proper Google Maps Search URL */}
-                        <button
-                          className="btn-map"
-                          onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(req.hospitalName + ' ' + req.location)}`, '_blank')}
-                        >
-                          📍 View Map
-                        </button>
-                        <button
-                          className="btn-accept"
-                          onClick={() => handleAccept(req._id)}
-                          disabled={!isEligible}
-                          style={{ opacity: isEligible ? 1 : 0.5, cursor: isEligible ? 'pointer' : 'not-allowed' }}
-                        >
-                          ✅ Accept Request
-                        </button>
-                      </div>
-                    </div>
-                  ))
+                    );
+                  })
                 )}
               </div>
             </div>
           </>
         )}
 
-        {/* TAB 2: REAL DONATION HISTORY */}
+        {/* 🟢 TAB 2: REAL DONATION HISTORY */}
         {activeTab === 'donations' && (
           <div className="requests-section">
             <h3>🩸 My Verified Donation History</h3>
@@ -374,7 +431,7 @@ const handleAccept = async (requestId) => {
           </div>
         )}
 
-        {/* TAB 3: PROFILE SETTINGS */}
+        {/* 🟢 TAB 3: PROFILE SETTINGS */}
         {activeTab === 'profile' && (
           <div className="requests-section">
             <h3>⚙️ Profile Settings</h3>
@@ -409,6 +466,18 @@ const handleAccept = async (requestId) => {
                 <div><label>Confirm Password</label><input type="password" required value={passwordData.confirmPassword} onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })} style={{ width: '100%', padding: '10px' }} /></div>
                 <button type="submit" style={{ gridColumn: 'span 2', padding: '12px', background: '#1976D2', color: 'white', border: 'none', borderRadius: '5px' }}>Update Password</button>
               </form>
+            </div>
+
+            <div style={{ background: '#fff9c4', padding: '20px', borderRadius: '12px', border: '1px solid #fbc02d', marginBottom: '30px' }}>
+              <h4 style={{ color: '#f57f17', marginTop: 0 }}>🛠️ Developer/Testing Tools</h4>
+              <p style={{ fontSize: '14px', color: '#666' }}>Bypass the 90-day waiting period (For testing purposes only).</p>
+
+              <button
+                onClick={handleResetTimer}
+                style={{ backgroundColor: '#f57f17', color: 'white', padding: '10px 20px', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}
+              >
+                🛑 Stop Countdown & Make Eligible
+              </button>
             </div>
 
             <h3 style={{ borderLeft: '4px solid #d32f2f', paddingLeft: '10px', color: '#d32f2f' }}>⚠️ Account Deletion</h3>
