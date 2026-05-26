@@ -63,8 +63,7 @@ const DonorDashboard = () => {
   useEffect(() => {
     const fetchHistory = async () => {
       try {
-        const response = await fetch(`https://lifelink-api-tlx8.onrender.com/api/requests/donor-history/${encodeURIComponent(userName)}`);
-        const data = await response.json();
+        const response = await fetch(`https://lifelink-api-tlx8.onrender.com/api/requests/donor-history/${encodeURIComponent(userEmail)}`); const data = await response.json();
         if (response.ok) {
           setDonationHistory(data);
           setTotalDonations(data.length);
@@ -147,8 +146,8 @@ const DonorDashboard = () => {
       const data = await response.json();
 
       if (response.ok) {
-        alert("🎉 Request Accepted! Please reach the hospital ASAP.");
-        localStorage.setItem('lastDonationDate', new Date().toISOString());
+        alert("🎉 Request Accepted! Patient will contact you soon.");
+        // ❌ Yahan se localStorage timer wali line hata di gayi hai (Timer patient start karega)
         window.location.reload();
       } else {
         alert(`⚠️ ${data.message || "Could not accept request."}`);
@@ -246,26 +245,24 @@ const DonorDashboard = () => {
   };
 
   // 🚀 RESET TIMER FUNCTION (For Testing/Admin Purposes)
-const handleResetTimer = async () => {
+  const handleResetTimer = async () => {
     const confirmReset = window.confirm("Are you sure you want to stop the countdown?");
     if (!confirmReset) return;
 
     try {
-      // ⚠️ Dhyan dein: Apni backend file ke hisaab se URL check karein (auth ya requests)
       const response = await fetch(`https://lifelink-api-tlx8.onrender.com/api/auth/reset-timer`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: userEmail }) 
+        body: JSON.stringify({ email: userEmail })
       });
 
-      const data = await response.json(); // 🚀 Backend ka asli message read karna
+      const data = await response.json();
 
       if (response.ok) {
         alert("✅ Countdown Stopped! You are now eligible to donate.");
-        localStorage.removeItem('lastDonationDate'); 
-        window.location.reload(); 
+        localStorage.removeItem('lastDonationDate');
+        window.location.reload();
       } else {
-        // 🚀 Ab humein pata chalega ki galti kya hai!
         alert(`❌ Error from Backend: ${data.message || "Failed"}`);
       }
     } catch (error) {
@@ -273,7 +270,6 @@ const handleResetTimer = async () => {
       console.error(error);
     }
   };
-
 
   return (
     <div className="dashboard-wrapper">
@@ -364,6 +360,7 @@ const handleResetTimer = async () => {
                         <div className="req-actions" style={{ marginTop: '15px' }}>
                           <button
                             className="btn-map"
+                            // 🚀 FIXED MAP URL FORMAT
                             onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(req.hospitalName + ' ' + req.location)}`, '_blank')}
                           >
                             📍 View Map

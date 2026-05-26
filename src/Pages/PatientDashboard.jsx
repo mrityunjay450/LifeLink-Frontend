@@ -34,7 +34,6 @@ const PatientDashboard = () => {
     fetchMyRequests();
   }, [userName]);
 
-  // 🚀 FIXED: Form State me 'pincode' add kar diya gaya hai
   const [formData, setFormData] = useState({
     bloodGroup: '', hospitalName: '', contactNumber: '', urgency: 'high', location: '', pincode: ''
   });
@@ -55,7 +54,6 @@ const PatientDashboard = () => {
 
       if (response.ok) {
         alert("🚨 Emergency Request Broadcasted to Local Donors!");
-        // 🚀 FIXED: Reset karne ke time pincode bhi khali karna hai
         setFormData({ bloodGroup: '', hospitalName: '', contactNumber: '', urgency: 'high', location: '', pincode: '' });
         fetchMyRequests(); 
         setActiveTab('dashboard'); 
@@ -64,6 +62,29 @@ const PatientDashboard = () => {
       }
     } catch (error) {
       alert("Server error!");
+    }
+  };
+
+  // 🚀 NAYA FUNCTION: COMPLETE DONATION & START TIMER
+  const handleCompleteDonation = async (requestId, donorEmail) => {
+    const confirm = window.confirm("Verify that this donor has successfully donated blood? This will start their 90-day recovery timer.");
+    if (!confirm) return;
+
+    try {
+      const response = await fetch(`https://lifelink-api-tlx8.onrender.com/api/requests/complete/${requestId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ donorEmail }) // Kisne blood diya uska email
+      });
+
+      if (response.ok) {
+        alert("✅ Donation completed! Blood stock updated and Donor's timer has started.");
+        fetchMyRequests(); // List ko refresh karne ke liye
+      } else {
+        alert("❌ Failed to complete request.");
+      }
+    } catch (error) {
+      alert("Server Error!");
     }
   };
 
@@ -159,25 +180,50 @@ const PatientDashboard = () => {
                     </div>
                     
                     <div className={`status-badge ${req.status}`}>
-                      {req.status === 'pending' ? '⏳ Searching for Donors...' : '✅ Donor Found!'}
+                      {req.status === 'pending' ? '⏳ Searching for Donors...' : req.status === 'fulfilled' ? '🎉 Request Completed!' : '✅ Donors Found!'}
                     </div>
                     
-                    {req.status === 'accepted' && (
-                      <div className="contact-actions" style={{ width: '100%' }}>
-                        <p className="donor-info">🩸 Accepted by Hero: <strong>{req.acceptedBy}</strong></p>
-                        <div className="action-buttons">
-                          <a 
-                            href={`https://wa.me/91${req.donorContact}?text=Hi ${req.acceptedBy}, thank you for accepting my blood request on LifeLink!`} 
-                            target="_blank" 
-                            rel="noreferrer" 
-                            className="btn-whatsapp"
-                          >
-                            💬 WhatsApp
-                          </a>
-                          <a href={`tel:${req.donorContact}`} className="btn-call">
-                            📞 Call Now
-                          </a>
-                        </div>
+                    {/* 🚀 NAYA UI: VOLUNTEERED DONORS LIST WITH WHATSAPP/CALL */}
+                    {req.acceptedDonors && req.acceptedDonors.length > 0 && req.status !== 'fulfilled' && (
+                      <div style={{ marginTop: '15px', padding: '15px', backgroundColor: '#e3f2fd', borderRadius: '8px', border: '1px solid #90caf9' }}>
+                        <h4 style={{ margin: '0 0 10px 0', color: '#1565c0' }}>🤝 Donors Ready to Help</h4>
+                        
+                        {req.acceptedDonors.map((donor, index) => (
+                          <div key={index} style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#fff', padding: '12px', borderRadius: '5px', marginBottom: '10px', border: '1px solid #bbdefb', gap: '10px' }}>
+                            <div>
+                              <strong style={{ fontSize: '1.1rem' }}>{donor.donorName}</strong><br/>
+                              <span style={{ color: '#555', fontSize: '0.9rem' }}>{donor.donorContact}</span>
+                            </div>
+                            
+                            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                              {/* 💬 WhatsApp Button */}
+                              <a 
+                                href={`https://wa.me/91${donor.donorContact}?text=Hello ${donor.donorName}, I am reaching out regarding my urgent blood request on LifeLink. Are you available to donate?`} 
+                                target="_blank" 
+                                rel="noreferrer" 
+                                style={{ backgroundColor: '#25D366', color: 'white', padding: '8px 12px', textDecoration: 'none', borderRadius: '5px', fontSize: '13px', fontWeight: 'bold' }}
+                              >
+                                💬 WhatsApp
+                              </a>
+                              
+                              {/* 📞 Call Button */}
+                              <a 
+                                href={`tel:${donor.donorContact}`} 
+                                style={{ backgroundColor: '#1976D2', color: 'white', padding: '8px 12px', textDecoration: 'none', borderRadius: '5px', fontSize: '13px', fontWeight: 'bold' }}
+                              >
+                                📞 Call
+                              </a>
+
+                              {/* ✅ Verify Donation Button */}
+                              <button 
+                                onClick={() => handleCompleteDonation(req._id, donor.donorEmail)} 
+                                style={{ backgroundColor: '#d32f2f', color: 'white', padding: '8px 12px', border: 'none', borderRadius: '5px', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer' }}
+                              >
+                                ✅ Blood Received
+                              </button>
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     )}
                   </div>
@@ -223,7 +269,6 @@ const PatientDashboard = () => {
                 <input type="text" name="location" value={formData.location} onChange={handleChange} required />
               </div>
               
-              {/* 🚀 FIXED: Naya Pincode Field yahan add kiya hai */}
               <div className="req-input-group full-width">
                 <label>Pincode * (To notify local donors)</label>
                 <input type="text" name="pincode" value={formData.pincode} onChange={handleChange} required pattern="[0-9]{6}" placeholder="e.g. 800001" />
