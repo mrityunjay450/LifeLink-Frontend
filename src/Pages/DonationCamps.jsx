@@ -9,8 +9,7 @@ const DonationCamps = () => {
     fetch('https://lifelink-api-tlx8.onrender.com/api/camps/all')
       .then(res => res.json())
       .then(data => {
-        // 🔥 FILTER LOGIC: Sirf aaj aur aage ki date wale camps hi rakhna hai
-        const today = new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
+        const today = new Date().toISOString().split('T')[0];
         const activeCamps = data.filter(camp => camp.date >= today);
         
         setCamps(activeCamps);
@@ -45,7 +44,7 @@ const DonationCamps = () => {
                 </div>
                 <p className="camp-desc">{camp.description}</p>
                 
-                {/* 🚀 FIXED: Proper Google Maps URL redirection */}
+                {/* Proper Google Maps URL redirection */}
                 <button 
                   className="btn-join" 
                   onClick={() => window.open(`https://maps.google.com/?q=${encodeURIComponent(camp.location)}`, '_blank')}

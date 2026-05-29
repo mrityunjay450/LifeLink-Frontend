@@ -15,7 +15,6 @@ const ContactUs = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Real app me ye data backend par post hoga. Abhi ke liye hum alert show karenge.
     alert("🎉 Thank you for contacting LifeLink! Our support team will get back to you shortly.");
     setFormData({ name: '', email: '', subject: '', message: '' });
   };
@@ -50,7 +49,7 @@ const ContactUs = () => {
           </div>
         </div>
 
-        {/* 🟢 Form & Map Layout */}
+        {/* Form & Map Layout */}
         <div className="contact-bottom">
           
           {/* Contact Form */}
@@ -77,11 +76,11 @@ const ContactUs = () => {
             </form>
           </div>
 
-          {/* Google Map Embedded (Dummy Location) */}
+          {/* Google Map Embedded */}
           <div className="contact-map">
             <iframe
               title="LifeLink HQ"
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d112001.38531063991!2d77.26674937740263!3d28.5355161!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x390ce5a43173357b%3A0x37ffce30c87cc03f!2sNoida%2C%20Uttar%20Pradesh!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin"
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3413.4842991585656!2d78.69668837541062!3d28.82671297555929!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x390afdca63139dad%3A0x43d265f7042c4e17!2sSector%2013%2C%20New%20Moradabad%2C%20Moradabad%2C%20Uttar%20Pradesh%20244102!5e1!3m2!1sen!2sin!4v1780020746475!5m2!1sen!2sin" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"
               width="100%"
               height="100%"
               style={{ border: 0, borderRadius: '15px' }}

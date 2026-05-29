@@ -38,7 +38,7 @@ const DonorDashboard = () => {
     if (userRole !== 'donor') navigate('/');
   }, [navigate, userRole]);
 
-  // 🟢 FETCH ACTIVE EMERGENCY REQUESTS
+  // FETCH ACTIVE EMERGENCY REQUESTS
   useEffect(() => {
     const fetchRequests = async () => {
       try {
@@ -59,7 +59,7 @@ const DonorDashboard = () => {
     fetchRequests();
   }, []);
 
-  // 🟢 FETCH REAL DONATION HISTORY FROM BACKEND
+  // FETCH REAL DONATION HISTORY FROM BACKEND
   useEffect(() => {
     const fetchHistory = async () => {
       try {
@@ -75,7 +75,7 @@ const DonorDashboard = () => {
     fetchHistory();
   }, [userName]);
 
-  // 🟢 ELIGIBILITY TIMER LOGIC
+  // ELIGIBILITY TIMER LOGIC
   useEffect(() => {
     const lastDonation = localStorage.getItem('lastDonationDate');
 
@@ -117,7 +117,7 @@ const DonorDashboard = () => {
     return () => clearInterval(timer);
   }, []);
 
-  // 🟢 ACCEPT REQUEST LOGIC (MULTI-DONOR SUPPORT)
+  // ACCEPT REQUEST LOGIC (MULTI-DONOR SUPPORT)
   const handleAccept = async (requestId) => {
     if (!isEligible) {
       alert("❌ Please wait for your 90-day recovery period.");
@@ -147,7 +147,6 @@ const DonorDashboard = () => {
 
       if (response.ok) {
         alert("🎉 Request Accepted! Patient will contact you soon.");
-        // ❌ Yahan se localStorage timer wali line hata di gayi hai (Timer patient start karega)
         window.location.reload();
       } else {
         alert(`⚠️ ${data.message || "Could not accept request."}`);
@@ -158,7 +157,7 @@ const DonorDashboard = () => {
     }
   };
 
-  // 🟢 PROFESSIONAL CERTIFICATE GENERATOR
+  // PROFESSIONAL CERTIFICATE GENERATOR
   const generateCertificate = (count) => {
     const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
     const centerX = 297 / 2;
@@ -188,7 +187,7 @@ const DonorDashboard = () => {
     doc.save(`LifeLink_Hero_${userName}.pdf`);
   };
 
-  // 🟢 PROFILE UPDATES & SETTINGS
+  // PROFILE UPDATES & SETTINGS
   const handlePhotoUpload = async (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -244,7 +243,7 @@ const DonorDashboard = () => {
     }
   };
 
-  // 🚀 RESET TIMER FUNCTION (For Testing/Admin Purposes)
+  // RESET TIMER FUNCTION (For Testing/Admin Purposes)
   const handleResetTimer = async () => {
     const confirmReset = window.confirm("Are you sure you want to stop the countdown?");
     if (!confirmReset) return;
@@ -293,7 +292,7 @@ const DonorDashboard = () => {
           </div>
         </div>
 
-        {/* 🟢 TAB 1: MAIN DASHBOARD */}
+        {/* TAB 1: MAIN DASHBOARD */}
         {activeTab === 'dashboard' && (
           <>
             <div className="stats-grid">
@@ -402,7 +401,7 @@ const DonorDashboard = () => {
           </>
         )}
 
-        {/* 🟢 TAB 2: REAL DONATION HISTORY */}
+        {/* TAB 2: REAL DONATION HISTORY */}
         {activeTab === 'donations' && (
           <div className="requests-section">
             <h3>🩸 My Verified Donation History</h3>
@@ -428,7 +427,7 @@ const DonorDashboard = () => {
           </div>
         )}
 
-        {/* 🟢 TAB 3: PROFILE SETTINGS */}
+        {/* TAB 3: PROFILE SETTINGS */}
         {activeTab === 'profile' && (
           <div className="requests-section">
             <h3>⚙️ Profile Settings</h3>

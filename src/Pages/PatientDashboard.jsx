@@ -65,7 +65,7 @@ const PatientDashboard = () => {
     }
   };
 
-  // 🚀 NAYA FUNCTION: COMPLETE DONATION & START TIMER
+  // NEY FUNCTION: COMPLETE DONATION & START TIMER
   const handleCompleteDonation = async (requestId, donorEmail) => {
     const confirm = window.confirm("Verify that this donor has successfully donated blood? This will start their 90-day recovery timer.");
     if (!confirm) return;
@@ -74,12 +74,12 @@ const PatientDashboard = () => {
       const response = await fetch(`https://lifelink-api-tlx8.onrender.com/api/requests/complete/${requestId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ donorEmail }) // Kisne blood diya uska email
+        body: JSON.stringify({ donorEmail })
       });
 
       if (response.ok) {
         alert("✅ Donation completed! Blood stock updated and Donor's timer has started.");
-        fetchMyRequests(); // List ko refresh karne ke liye
+        fetchMyRequests();
       } else {
         alert("❌ Failed to complete request.");
       }
@@ -183,7 +183,7 @@ const PatientDashboard = () => {
                       {req.status === 'pending' ? '⏳ Searching for Donors...' : req.status === 'fulfilled' ? '🎉 Request Completed!' : '✅ Donors Found!'}
                     </div>
                     
-                    {/* 🚀 NAYA UI: VOLUNTEERED DONORS LIST WITH WHATSAPP/CALL */}
+                    {/* UI: VOLUNTEERED DONORS LIST WITH WHATSAPP/CALL */}
                     {req.acceptedDonors && req.acceptedDonors.length > 0 && req.status !== 'fulfilled' && (
                       <div style={{ marginTop: '15px', padding: '15px', backgroundColor: '#e3f2fd', borderRadius: '8px', border: '1px solid #90caf9' }}>
                         <h4 style={{ margin: '0 0 10px 0', color: '#1565c0' }}>🤝 Donors Ready to Help</h4>

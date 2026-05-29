@@ -94,7 +94,6 @@ const Hospitals = () => {
                     className="btn-directions"
                     onClick={(e) => {
                       e.stopPropagation(); 
-                      // 🚀 FIXED: Google Maps Direct Search URL Fixed Syntax
                       window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(hosp.name + ' ' + (hosp.location || ''))}`, '_blank');
                     }}
                   >

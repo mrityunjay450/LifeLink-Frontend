@@ -15,7 +15,7 @@ const Home = ({ isLoggedIn }) => {
   return (
     <div className="home-container">
       
-      {/* 🟢 1. HERO SECTION (Modern & Punchy) */}
+      {/* 1. HERO SECTION */}
       <section className="hero-section">
         <div className="hero-content">
           <div className="badge">❤️ #1 Blood Donation Network</div>
@@ -39,13 +39,12 @@ const Home = ({ isLoggedIn }) => {
         </div>
 
         <div className="hero-image-wrapper">
-          {/* Ek animated pulse effect ke andar image */}
           <div className="pulse-ring"></div>
           <img src="/image/d&d.png" alt="LifeLink Connect" className="hero-img" /> 
         </div>
       </section>
 
-      {/* 🟢 2. IMPACT STATS BANNER (Trust Builder) */}
+      {/* 2. IMPACT STATS BANNER (Trust Builder) */}
       <section className="stats-banner">
         <div className="stat-item">
           <h2>10,000+</h2>
@@ -65,7 +64,7 @@ const Home = ({ isLoggedIn }) => {
         </div>
       </section>
 
-      {/* 🟢 3. HOW IT WORKS (Process Steps) */}
+      {/* 3. HOW IT WORKS (Process Steps) */}
       <section className="steps-section">
         <div className="section-header">
           <h2>How LifeLink Works</h2>
@@ -91,7 +90,7 @@ const Home = ({ isLoggedIn }) => {
         </div>
       </section>
 
-      {/* 🟢 4. FEATURES SECTION (Upgraded UI) */}
+      {/* 4. FEATURES SECTION (Upgraded UI) */}
       <section className="features-section">
         <h2>Why Choose LifeLink?</h2>
         <div className="features-grid">
@@ -113,7 +112,7 @@ const Home = ({ isLoggedIn }) => {
         </div>
       </section>
 
-      {/* 🟢 5. CALL TO ACTION FOOTER */}
+      {/* 5. CALL TO ACTION FOOTER */}
       <section className="cta-section">
         <h2>Ready to make a difference?</h2>
         <p>Join thousands of heroes who are already saving lives daily.</p>

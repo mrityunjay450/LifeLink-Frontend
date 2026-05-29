@@ -33,8 +33,7 @@ const Login = ({ setIsLoggedIn, setUserName }) => {
         const data = await response.json();
 
         if (response.ok) {
-          // 🚀 THE ULTIMATE ID FINDER (Bug Fixed Here)
-          // Ye check karega ki ID backend se kis naam se aayi hai aur undefined hone se rokega
+          // THE ULTIMATE ID FINDER
           const finalUserId = data.user?._id || data.user?.id || data._id || data.id;
           const finalUserName = data.user?.name || data.name || "User";
           const finalUserEmail = data.user?.email || data.email || formData.email;
@@ -42,14 +41,13 @@ const Login = ({ setIsLoggedIn, setUserName }) => {
 
           alert(`🎉 Welcome back, ${finalUserName}!`);
           
-          // 🚀 LOCAL STORAGE SETUP (With guaranteed valid values)
+          // LOCAL STORAGE SETUP (With guaranteed valid values)
           localStorage.setItem('lastDonationDate', data.lastDonationDate || "null");
           localStorage.setItem('token', data.token || "");
           localStorage.setItem('userName', finalUserName);
           localStorage.setItem('userEmail', finalUserEmail);
           localStorage.setItem('userPincode', data.user.pincode);
           
-          // Yehi wo field hai jo pehle 'undefined' ho rahi thi
           if (finalUserId) {
             localStorage.setItem('userId', finalUserId);
           } else {
@@ -95,7 +93,7 @@ const Login = ({ setIsLoggedIn, setUserName }) => {
 
       if (response.ok) {
         alert("🎉 Registration Successful! Please sign in.");
-        setIsLogin(true); // Form ko login mode mein switch kar do
+        setIsLogin(true); 
       } else {
         alert("❌ Error: " + data.message);
       }

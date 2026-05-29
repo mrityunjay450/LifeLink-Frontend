@@ -17,12 +17,12 @@ const HospitalDashboard = () => {
   const [activeMatches, setActiveMatches] = useState([]);
   const [activeTab, setActiveTab] = useState('inventory');
 
-  // 🚀 NAYE STATES (Camps aur Donors ke liye)
+  // NAYE STATES
   const [myCamps, setMyCamps] = useState([]);
-  const [selectedCamp, setSelectedCamp] = useState(null); // Detail view dikhane ke liye
+  const [selectedCamp, setSelectedCamp] = useState(null);
   const [donorForm, setDonorForm] = useState({ donorName: '', bloodGroup: '', contact: '', age: '', gender: '' });
 
-  // 🟢 1. FETCH INVENTORY
+  // 1. FETCH INVENTORY
   const fetchInventory = async () => {
     try {
       const encodedName = encodeURIComponent(userName);
@@ -38,7 +38,7 @@ const HospitalDashboard = () => {
     fetchInventory();
   }, [userName]);
 
-  // 🟢 2. FETCH ACTIVE MATCHES (Incoming Donors)
+  // 2. FETCH ACTIVE MATCHES (Incoming Donors)
   const fetchActiveMatches = async () => {
     try {
       const encodedName = encodeURIComponent(userName);
@@ -52,11 +52,10 @@ const HospitalDashboard = () => {
     fetchActiveMatches();
   }, [userName]);
 
-  // 🟢 3. FETCH HOSPITAL'S OWN CAMPS
+  // 3. FETCH HOSPITAL'S OWN CAMPS
   const fetchMyCamps = async () => {
     try {
       const encodedName = encodeURIComponent(userName);
-      // 🚀 FIXED: ID ki jagah Name se search kar rahe hain taaki purane camps bhi dikh jayein
       const response = await fetch(`https://lifelink-api-tlx8.onrender.com/api/camps/hospital-name/${encodedName}`);
       const data = await response.json();
       if (response.ok) setMyCamps(data);
@@ -67,9 +66,9 @@ const HospitalDashboard = () => {
 
   useEffect(() => {
     fetchMyCamps();
-  }, [userName]); // isko userName ke badle array me rakhna sahi hai taaki ek baar chal jaye
+  }, [userName]);
 
-  // 🟢 4. MANUAL STOCK UPDATE
+  // 4. MANUAL STOCK UPDATE
   const updateStock = async (bloodGroup, change) => {
     try {
       const response = await fetch('https://lifelink-api-tlx8.onrender.com/api/inventory/update', {
@@ -82,7 +81,7 @@ const HospitalDashboard = () => {
     } catch (error) { }
   };
 
-  // 🟢 5. COMPLETE DONATION
+  // 5. COMPLETE DONATION
   const handleComplete = async (requestId, bloodGroup) => {
     const confirmDone = window.confirm(`Has the donor successfully donated? This will close the request and automatically add 1 Unit of ${bloodGroup} to your inventory.`);
     if (!confirmDone) return;
@@ -99,7 +98,7 @@ const HospitalDashboard = () => {
     }
   };
 
-  // 🟢 Form States & Handlers (Blood Request)
+  // Form States & Handlers (Blood Request)
   const [formData, setFormData] = useState({ patientName: '', bloodGroup: '', contactNumber: '', urgency: 'high', location: '', pincode: '' });
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
@@ -119,7 +118,7 @@ const HospitalDashboard = () => {
     } catch (error) { alert("Server error!"); }
   };
 
-  // 🟢 Camp Publish Handler
+  // Camp Publish Handler
   const [campData, setCampData] = useState({ campName: '', date: '', time: '', location: '', description: '' });
   const handleCampChange = (e) => setCampData({ ...campData, [e.target.name]: e.target.value });
 
@@ -151,7 +150,7 @@ const HospitalDashboard = () => {
     }
   };
 
-  // 🚀 NAYA: Donor ko Camp me add karne ka function
+//Add donor in Camp
   const handleAddDonor = async (e) => {
     e.preventDefault();
     try {
@@ -164,9 +163,9 @@ const HospitalDashboard = () => {
 
       if (response.ok) {
         alert("✅ Donor Record Saved!");
-        setSelectedCamp(data.camp); // Naye data (fresh table) ke sath UI update
-        setDonorForm({ donorName: '', bloodGroup: '', contact: '', age: '', gender: '' }); // Form khali karo
-        fetchMyCamps(); // Background wali list bhi update rakho
+        setSelectedCamp(data.camp);
+        setDonorForm({ donorName: '', bloodGroup: '', contact: '', age: '', gender: '' }); 
+        fetchMyCamps(); 
       }
     } catch (error) {
       console.log(error);
@@ -261,7 +260,6 @@ const HospitalDashboard = () => {
         {activeTab === 'organize-camp' && (
           <div className="request-form-container">
 
-            {/* 🔥 AGAR KOI CAMP SELECT NAHI HUA HAI */}
             {!selectedCamp ? (
               <>
                 <h3 style={{ borderLeft: '4px solid #4CAF50', paddingLeft: '10px' }}>📅 Organize a Camp</h3>
@@ -298,7 +296,6 @@ const HospitalDashboard = () => {
               </>
             ) : (
 
-              /* 🔥 AGAR HOSPITAL NE 'VIEW DETAILS' DABA DIYA HAI */
               <div className="camp-details-view">
                 <button onClick={() => setSelectedCamp(null)} className="stock-btn" style={{ marginBottom: '20px', padding: '10px 20px', width: 'auto' }}>🔙 Back to List</button>
 

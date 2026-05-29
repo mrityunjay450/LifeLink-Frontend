@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react'; // 🚀 FIXED: useRef import kiya
+import React, { useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './Navbar.css';
 
@@ -9,10 +9,8 @@ const Navbar = ({ isLoggedIn, userName, setIsLoggedIn, setUserName }) => {
   const navigate = useNavigate();
   const userRole = localStorage.getItem('userRole');
 
-  // 🚀 MAGIC: Hover Delay ke liye Reference
   const timeoutRef = useRef(null);
 
-  // Mobile menu toggle functions
   const toggleMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
   const closeMenu = () => setIsMobileMenuOpen(false);
 
@@ -35,14 +33,13 @@ const Navbar = ({ isLoggedIn, userName, setIsLoggedIn, setUserName }) => {
     window.location.href = '/login'; 
   };
 
-  // 🚀 FIXED: Smooth Hover Functions
+  // Smooth Hover Functions
   const handleMouseEnter = () => {
-    if (timeoutRef.current) clearTimeout(timeoutRef.current); // Agar koi timer chal raha hai toh usko roko
-    setDropdownOpen(true); // Menu khol do
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    setDropdownOpen(true);
   };
 
   const handleMouseLeave = () => {
-    // Menu band karne se pehle 300 millisecond (0.3s) ka wait karo
     timeoutRef.current = setTimeout(() => {
       setDropdownOpen(false);
     }, 300); 
@@ -74,8 +71,8 @@ const Navbar = ({ isLoggedIn, userName, setIsLoggedIn, setUserName }) => {
         {isLoggedIn ? (
           <li 
             className="user-dropdown-container"
-            onMouseEnter={handleMouseEnter} // 🚀 Updated Here
-            onMouseLeave={handleMouseLeave} // 🚀 Updated Here
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
             onClick={() => setDropdownOpen(!dropdownOpen)} 
           >
             <div className="user-profile-btn">

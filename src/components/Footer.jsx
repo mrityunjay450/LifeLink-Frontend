@@ -34,7 +34,6 @@ const Footer = () => {
         <div className="footer-col">
           <h3>Information</h3>
           <ul>
-            {/* 🚀 FIXED: Naya Contact Us page yahan link kar diya */}
             <li><Link to="/contact">Contact Us</Link></li>
             <li><Link to="/">About Us</Link></li>
             <li><Link to="/">Privacy Policy</Link></li>
@@ -45,10 +44,9 @@ const Footer = () => {
         {/* Column 4: Contact Us */}
         <div className="footer-col contact-col">
           <h3>Get in Touch</h3>
-          {/* 🚀 FIXED: Phone aur Email ko clickable bana diya */}
           <p><a href="tel:+918271599028" style={{color: 'inherit', textDecoration: 'none'}}>📞 +91 8271599028</a></p>
           <p><a href="mailto:support@lifelink.com" style={{color: 'inherit', textDecoration: 'none'}}>✉️ livelinksaver@gmail.com</a></p>
-          <p>📍 LifeLink Tech Park, Sector 62<br/>Noida, UP 201301, India</p>
+          <p>📍 LifeLink Tech Park, Sector 13<br/>Moradabad, UP 244102, India</p>
         </div>
       </div>
 

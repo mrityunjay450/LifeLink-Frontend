@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react'; 
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
-// 🚀 --- SOCKET & TOAST IMPORTS SHURU --- 🚀
+// SOCKET & TOAST IMPORTS START
 import { io } from 'socket.io-client';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-// 🚀 --- SOCKET & TOAST IMPORTS KHATAM --- 🚀
+// SOCKET & TOAST IMPORTS END
 
 import Navbar from './components/Navbar.jsx';
 import Footer from './components/Footer.jsx'; 
@@ -19,49 +19,46 @@ import Hospitals from './Pages/Hospitals';
 import ContactUs from './Pages/ContactUs';
 import DonorsList from './Pages/DonorsList';
 
-// Donation Camps page ko import kiya
+// Donation Camps page Imported
 import DonationCamps from './Pages/DonationCamps'; 
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('token'));
   const [userName, setUserName] = useState(localStorage.getItem('userName') || "");
 
-  // 🔐 --- 5-MINUTE AUTO LOGOUT (SECURITY LOGIC) SHURU --- 🔐
+  // 30-MINUTE AUTO LOGOUT (SECURITY LOGIC) START
   useEffect(() => {
     let inactivityTimer;
-    const FIVE_MINUTES = 5 * 60 * 1000; // 30 mins in milliseconds
+    const THIRTY_MINUTES = 30 * 60 * 1000; // 30 mins in milliseconds
 
     const forceLogout = () => {
-      // Check karte hain ki kya user sach me logged in hai
       const hasToken = localStorage.getItem('token'); 
       if (hasToken) {
-        localStorage.clear(); // Saara data delete (token, naam, date sab saaf)
-        window.location.href = '/login'; // User ko wapas login page par bhej do
+        localStorage.clear();
+        window.location.href = '/login';
       }
     };
 
     const resetInactivityTimer = () => {
       clearTimeout(inactivityTimer);
-      // Tab close hone par bhi time yaad rakhne ke liye save karo
       localStorage.setItem('lastActiveTime', new Date().getTime().toString());
       
-      // Naya 30 minute ka timer start karo
-      inactivityTimer = setTimeout(forceLogout, FIVE_MINUTES);
+      // Start new thirty minutes timer
+      inactivityTimer = setTimeout(forceLogout, THIRTY_MINUTES);
     };
 
     const checkTabReopen = () => {
       const lastActive = localStorage.getItem('lastActiveTime');
       if (lastActive) {
         const timePassed = new Date().getTime() - parseInt(lastActive);
-        if (timePassed > FIVE_MINUTES) {
-          forceLogout(); // Agar 30 min se zyada ho gaye toh app khulte hi bahar
+        if (timePassed > THIRTY_MINUTES) {
+          forceLogout();
         }
       }
     };
 
     checkTabReopen();
 
-    // Mouse ya keyboard hilne par timer reset karo
     window.addEventListener('mousemove', resetInactivityTimer);
     window.addEventListener('keydown', resetInactivityTimer);
     window.addEventListener('click', resetInactivityTimer);
@@ -77,10 +74,10 @@ function App() {
       window.removeEventListener('scroll', resetInactivityTimer);
     };
   }, []);
-  // 🔐 --- AUTO LOGOUT LOGIC KHATAM --- 🔐
+  //  AUTO LOGOUT LOGIC END
 
 
-  // 🚀 --- REAL-TIME NOTIFICATION LOGIC SHURU --- 🚀
+  // REAL-TIME NOTIFICATION LOGIC START
   useEffect(() => {
     const socket = io("https://lifelink-api-tlx8.onrender.com"); 
 
@@ -110,7 +107,7 @@ function App() {
       socket.disconnect();
     };
   }, []);
-  // 🚀 --- REAL-TIME NOTIFICATION LOGIC KHATAM --- 🚀
+  //  REAL-TIME NOTIFICATION LOGIC END
 
   return (
     <Router>

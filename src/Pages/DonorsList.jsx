@@ -4,7 +4,7 @@ import './DonorsList.css';
 const DonorsList = () => {
   const [donors, setDonors] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedDonor, setSelectedDonor] = useState(null); // Modal ke liye state
+  const [selectedDonor, setSelectedDonor] = useState(null);
 
   useEffect(() => {
     const fetchDonors = async () => {
@@ -41,7 +41,7 @@ const DonorsList = () => {
               <div 
                 className="donor-card" 
                 key={donor._id} 
-                onClick={() => setSelectedDonor(donor)} // Click karne par Modal open hoga
+                onClick={() => setSelectedDonor(donor)} 
               >
                 <div className="donor-avatar">👤</div>
                 <h3>{donor.name}</h3>
@@ -54,7 +54,7 @@ const DonorsList = () => {
         )}
       </div>
 
-      {/* 🚀 MODAL (POPUP) SECTION */}
+      {/* MODAL (POPUP) SECTION */}
       {selectedDonor && (
         <div className="modal-overlay" onClick={() => setSelectedDonor(null)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
